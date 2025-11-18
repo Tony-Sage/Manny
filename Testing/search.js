@@ -10,6 +10,7 @@ const span = document.querySelector(".placeholder-text");
 const sideBar = document.querySelector('#mobileSidebar')
 const hamburger = document.querySelector(".hamburger")
 const mobileCloseButton = document.querySelector(".mobile-close")
+const modeOptions = document.querySelectorAll(".mode-option")
 let selectedBrand
 let selectedModel
 let selectedYear
@@ -118,6 +119,10 @@ dropdownMenu.addEventListener("change", () => {
 
 hamburger.addEventListener("click", showSideBar)
 mobileCloseButton.addEventListener("click", closeSideBar)
+
+modeOptions.forEach((option) => {
+ option.addEventListener("click", closeSideBar)
+})
 
 // ----------
 //INITIALIZATIONS
