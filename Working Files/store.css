@@ -388,3 +388,29 @@ body {
 @media (max-width: 420px) {
   html, body { overflow-x: hidden; }
 }
+
+/* Highlight active nav link */
+.nav-link.active {
+  color: #2EC4D6; /* teal highlight */
+  font-weight: 600;
+}
+
+/* Optional: lock scroll when sidebar open */
+body.no-scroll {
+  
+}
+
+/* Sidebar open state */
+#mobileSidebar.open {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+/* ensure this appears after the .mobile-sidebar rule or in your store.css/search.css */
+.mobile-sidebar {
+  right: -100%;
+  transition: right .28s ease;
+}
+.mobile-sidebar.open {
+  right: 0;
+}

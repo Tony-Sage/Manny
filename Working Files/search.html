@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Search Parts — Manny Autos</title>
+
+  <link rel="stylesheet" href="search.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Header (matches homepage structure) -->
+  <header class="main-header">
+    <div class="header-inner">
+      <div class="logo">
+        <a href="index.html"><img src="logo.jpg" alt="Manny Autos logo"></a>
+      </div>
+
+      <nav class="nav">
+        <ul class="nav-links">
+          <li><a class="nav-link" href="index.html">Home</a></li>
+
+          <li class="nav-item dropdown">
+            <!-- Search link shows the current mode (By Identifiers) -->
+            <a class="nav-link active" href="search.html">Search</a>
+            <div class="mode-toggle">
+              <span class="mode-text">By Identifiers</span>
+              <button class="mode-arrow" aria-label="Change search mode">▾</button>
+              <ul class="mode-menu">
+                <li><button class="mode-option">By Identifiers</button></li>
+                <li><button class="mode-option">By Category</button></li>
+              </ul>
+            </div>
+          </li>
+
+          <li><a class="nav-link" href="store.html">Store</a></li>
+        </ul>
+
+        <!-- Hamburger for mobile -->
+        <button class="hamburger" aria-label="Open menu">
+          <!-- 3 bars, using CSS fill from homepage colors -->
+          <svg width="28" height="18" viewBox="0 0 28 18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="28" height="2" rx="1" fill="#0B3B6F"></rect>
+            <rect y="8" width="28" height="2" rx="1" fill="#0B3B6F"></rect>
+            <rect y="16" width="28" height="2" rx="1" fill="#0B3B6F"></rect>
+          </svg>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Optional mobile sidebar (JS will toggle .open) -->
+  <aside id="mobileSidebar" class="mobile-sidebar" aria-hidden="true">
+    <div class="mobile-sidebar-inner">
+      <button class="mobile-close" aria-label="Close menu">✕</button>
+      <nav>
+        <ul class="mobile-nav-links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="search.html">Search (By Identifiers)</a></li>
+          <li><a href="store.html">Store</a></li>
+        </ul>
+      </nav>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="search-page">
+    <div class="page-inner">
+      <!-- Selector bar (pill) -->
+      <div class="selector-block">
+        <div class="selector-prompt">Filter</div>
+
+        <!-- Pill (add class .pos-0/.pos-1/.pos-2 to change slider position via JS later).
+             Default is .pos-0 (Brand). -->
+        <div class="pill pos-0" role="tablist" aria-label="Brand Model Year selector">
+          <button class="pill-option" data-index="0" type="button">Brand</button>
+          <button class="pill-option" data-index="1" type="button">Model</button>
+          <button class="pill-option" data-index="2" type="button">Year</button>
+          <div class="pill-slider" aria-hidden="true"></div>
+        </div>
+
+        <!-- the dropdown below the pill changes depending on the pill position (for design only) -->
+        <div class="selector-dropdown">
+          <select>
+            <option>Select Brand</option>
+            <option>Toyota</option>
+            <option>Honda</option>
+            <option>Nissan</option>
+            <option>Hyundai</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- By Identifiers (active) -->
+      <section class="identifiers">
+        <h1>Search by identifiers</h1>
+        <p class="sub">Enter a part name, OEM number, or reference code.</p>
+
+        <div class="search-row">
+          <input type="search" class="search-input" placeholder="Search part name, OEM number, reference...">
+          <button class="btn btn-primary">Search</button>
+        </div>
+      </section>
+
+      <!--
+      ===========================
+      By Category (commented)
+      ===========================
+      -->
+      <section class="categories">
+        <h1>Browse categories</h1>
+        <div class="categories-grid">
+          <div class="category-card">Engine Parts</div>
+          <div class="category-card">Suspension</div>
+          <div class="category-card">Brakes</div>
+          <div class="category-card">Electrical</div>
+          <div class="category-card">Body Parts</div>
+          <div class="category-card">Cooling</div>
+        </div>
+      </section>
+      
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© <span id="yearFooter"></span> Manny Autos — All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    // tiny unobtrusive script to fill the footer year and set ARIA (harmless, optional)
+    document.getElementById('yearFooter').textContent = new Date().getFullYear();
+  </script>
+  
+  <script src="search.js" type="module"></script>
+</body>
+</html>
