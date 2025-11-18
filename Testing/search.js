@@ -75,6 +75,7 @@ function filterYearOptions(b, m){
 
 function showSideBar(){
  sideBar.style.right = "0%"
+ console.log("Should be open!")
 }
 
 function closeSideBar(){
@@ -118,17 +119,32 @@ dropdownMenu.addEventListener("change", () => {
 })
 
 hamburger.addEventListener("click", showSideBar)
-mobileCloseButton.addEventListener("click", closeSideBar)
 
-modeOptions.forEach((option) => {
- option.addEventListener("click", closeSideBar)
+mobileCloseButton.addEventListener("click", (e) => {
+ closeSideBar()
+ document.querySelector(".mode-text").innerText = e.target.innerText
 })
 
-document.querySelector(".mode-text").addEventListener("mouseover", () => {
- document.querySelector(".mode-menu").style.display = "block"
- setTimeout(() => {
-  document.querySelector(".mode-menu").style.display = "none"
- }, 2500)
+modeOptions.forEach((option) => {
+ option.addEventListener("click", (e) => {
+    closeSideBar()
+    console.log("Should be closed!")
+  })
+})
+
+
+document.querySelectorAll(".mode-text").forEach((text)=>{
+  text.addEventListener("mouseover", () => {
+    document.querySelectorAll(".mode-menu").forEach((menu)=>{
+      menu.style.display = "block"
+      setTimeout(() => {
+        menu.style.display = "none"
+      }, 2500) 
+      menu.addEventListener("click", (e) => {
+        text.innerText = e.target.innerText
+      }) 
+    })  
+  })
 })
 
 // ----------
