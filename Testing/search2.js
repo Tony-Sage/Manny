@@ -70,7 +70,7 @@ if (!instructionModal) {
 }
 
 // small helper config
-const WHATSAPP_PHONE = ""; // optional: put your business number in international format, without + (e.g. "2348012345678"). If empty, uses "https://wa.me/?text="
+const WHATSAPP_PHONE = "+237697436198"; // optional: put your business number in international format, without + (e.g. "2348012345678"). If empty, uses "https://wa.me/?text="
 const INSTRUCTION_MODAL_DELAY_MS = 3000; // show the tip modal this many ms after a search
 let instructionModalTimeout = null;
 
@@ -257,7 +257,7 @@ function closeModal(modalEl) {
    ------------------------- */
 
 function openWhatsAppForPart(part) {
-  const message = `Hello, I want to order *${part.name}* (Part ID: ${part.id}). Price: ₦${formatNumber(part.price)}. Please confirm availability and delivery options.`;
+  const message = `Hello, I want to order *${part.name}* \n \n • (Part ID: ${part.id}). \n • Price: ₦${formatNumber(part.price)}. \n \n Please confirm availability and delivery options.`;
   const encoded = encodeURIComponent(message);
   const waUrl = WHATSAPP_PHONE
     ? `https://wa.me/${WHATSAPP_PHONE}?text=${encoded}`
