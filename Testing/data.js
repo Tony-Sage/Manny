@@ -5,7 +5,7 @@ export const autoParts = [
   {
     id: 1,
     name: "Brake Disc",
-    image: "images/brake-disc.jpg",
+    image: "../images/brake disc.jpg",
     description: "Ventilated front brake disc engineered for reliable stopping power and reduced fade.",
     category: "Chassis Accessories",
     oem: ["43512-02130", "43512-02131"],
@@ -22,7 +22,7 @@ export const autoParts = [
   {
     id: 2,
     name: "Steering Rack",
-    image: "images/steering-rack.jpg",
+    image: "../images/steering rack.jpg",
     description: "Precision steering rack assembly for smooth steering response and long service life.",
     category: "Chassis Accessories",
     oem: ["33800-89J01", "78510-42010"],
@@ -38,7 +38,7 @@ export const autoParts = [
   {
     id: 3,
     name: "Shaft Head (Drive Shaft End)",
-    image: "images/shaft-head.jpg",
+    image: "../images/shaft heads.jpg",
     description: "High-strength drive shaft head for secure coupling and reduced vibration.",
     category: "Engine Accessories",
     oem: ["39100-4A000", "39100-4A001"],
@@ -54,7 +54,7 @@ export const autoParts = [
   {
     id: 4,
     name: "Basket Bearing (Wheel Bearing)",
-    image: "images/bearing-basket.jpg",
+    image: "../images/basket bearing.jpg",
     description: "Durable wheel bearing (basket style) to ensure smooth wheel rotation and longevity.",
     category: "Chassis Accessories",
     oem: ["90369-46005", "51210-2S000"],
@@ -70,7 +70,7 @@ export const autoParts = [
   {
     id: 5,
     name: "Hub Assembly",
-    image: "images/hub.jpg",
+    image: "../images/hubs.jpg",
     description: "Complete hub assembly with flange for secure wheel mounting and reliable operation.",
     category: "Chassis Accessories",
     oem: ["42200-0E030", "43430-0E030"],
@@ -86,7 +86,7 @@ export const autoParts = [
   {
     id: 6,
     name: "Brake Pads (Front Set)",
-    image: "images/brake-pads.jpg",
+    image: "../images/brake pads.jpg",
     description: "Ceramic front brake pad set delivering quiet operation and long life.",
     category: "Chassis Accessories",
     oem: ["04465-02090", "45022-22040"],
@@ -103,7 +103,7 @@ export const autoParts = [
   {
     id: 7,
     name: "Shock Absorber (Rear)",
-    image: "images/shock-absorber.jpg",
+    image: "../images/shock.jpg",
     description: "Rear shock absorber tuned for comfort and control on mixed road conditions.",
     category: "Chassis Accessories",
     oem: ["48530-60090", "55310-5A2-A01"],
@@ -119,7 +119,7 @@ export const autoParts = [
   {
     id: 8,
     name: "Ball Joint",
-    image: "images/ball-joint.jpg",
+    image: "../images/ball joint.jpg",
     description: "Forged ball joint for reliable steering geometry and long-lasting durability.",
     category: "Chassis Accessories",
     oem: ["43330-60020", "51320-1AA0A"],
@@ -135,7 +135,7 @@ export const autoParts = [
   {
     id: 9,
     name: "Center Bearing",
-    image: "images/center-bearing.jpg",
+    image: "../images/center bearing.jpg",
     description: "Center support bearing for multi-piece drive shafts to reduce vibration and wear.",
     category: "Engine Accessories",
     oem: ["27121-4A000", "27121-3S000"],
@@ -151,7 +151,7 @@ export const autoParts = [
   {
     id: 10,
     name: "Universal Joint (U-Joint)",
-    image: "images/universal-joint.jpg",
+    image: "../images/universal joint.jpg",
     description: "Robust universal joint for reliable torque transfer in drive shafts under load.",
     category: "Engine Accessories",
     oem: ["23100-62010", "27110-2S000"],
@@ -167,7 +167,7 @@ export const autoParts = [
   {
     id: 11,
     name: "Shaft Joint (CV Joint)",
-    image: "images/shaft-joint.jpg",
+    image: "../images/shaft joint.jpg",
     description: "Constant velocity shaft joint to maintain smooth power transfer at varying angles.",
     category: "Engine Accessories",
     oem: ["44010-0V010", "38320-1AA0A"],
@@ -183,7 +183,7 @@ export const autoParts = [
   {
     id: 12,
     name: "Shaft Hose (Drive Shaft Dust Boot)",
-    image: "images/shaft-boot.jpg",
+    image: "../images/shaft hose.jpg",
     description: "Protective dust boot for CV/drive shaft joints — prevents contamination and premature wear.",
     category: "Engine Accessories",
     oem: ["04432-00010", "04433-00020"],
@@ -199,7 +199,7 @@ export const autoParts = [
   {
     id: 13,
     name: "Arm Bushing",
-    image: "images/arm-bush.jpg",
+    image: "../images/arm bushing.jpg",
     description: "Polyurethane control arm bushing for improved handling and reduced play.",
     category: "Chassis Accessories",
     oem: ["48654-60010", "51391-02010"],
@@ -215,7 +215,7 @@ export const autoParts = [
   {
     id: 14,
     name: "Control Arm",
-    image: "images/control-arm.jpg",
+    image: "../images/control arm.jpg",
     description: "Stamped steel control arm for dependable suspension geometry and strength.",
     category: "Chassis Accessories",
     oem: ["48068-02130", "48600-49705"],
@@ -231,7 +231,7 @@ export const autoParts = [
   {
     id: 15,
     name: "Stabilizer Rubber (Anti-roll Bush)",
-    image: "images/stabilizer-rubber.jpg",
+    image: "../images/stabilizer rubber.jpg",
     description: "Rubber stabilizer bush to reduce sway and maintain handling stability.",
     category: "Chassis Accessories",
     oem: ["48815-04010", "48815-0V010"],
@@ -247,7 +247,7 @@ export const autoParts = [
   {
     id: 16,
     name: "Linkage (Steering Linkage)",
-    image: "images/linkage.jpg",
+    image: "../images/linkage.jpg",
     description: "Steering linkage/component to maintain precise wheel alignment and steering feel.",
     category: "Chassis Accessories",
     oem: ["45503-35010", "45520-35010"],
@@ -263,7 +263,7 @@ export const autoParts = [
   {
     id: 17,
     name: "Tie Rod End",
-    image: "images/tie-rod-end.jpg",
+    image: "../images/tie rod end.jpg",
     description: "Adjustable tie rod end for secure steering linkage and precise toe settings.",
     category: "Chassis Accessories",
     oem: ["45046-02010", "45046-60010"],
@@ -279,7 +279,7 @@ export const autoParts = [
   {
     id: 18,
     name: "Tie Rod Socket (Outer Socket)",
-    image: "images/tie-rod-socket.jpg",
+    image: "../images/tie rod socket.jpg",
     description: "Outer tie rod socket for secure connection between steering rack and wheel assembly.",
     category: "Chassis Accessories",
     oem: ["45503-0V010", "45046-0V010"],
