@@ -11,6 +11,13 @@ const sideBar = document.querySelector('#mobileSidebar')
 const hamburger = document.querySelector(".hamburger")
 const mobileCloseButton = document.querySelector(".mobile-close")
 const modeOptions = document.querySelectorAll(".mode-option")
+const PLACEHOLDER_WORDS = [
+  "name (eg: brake pads)",
+  "OEM number (eg: 27121-4A000)",
+  "use (eg: used in the wheels)",
+  "keywords (eg: wheel bearing)"
+];
+const searchInput = document.querySelector('.search-input')
 let selectedBrand
 let selectedModel
 let selectedYear
@@ -80,6 +87,45 @@ function showSideBar(){
 
 function closeSideBar(){
  sideBar.style.right = "-100%"
+}
+
+// ---------- Typewriter placeholder ----------
+let placeholderTimer = null;
+function startPlaceholderTypewriter(inputEl, words = PLACEHOLDER_WORDS, speed = 100, pause = 1400) {
+  if (!inputEl) return;
+  let wi = 0, ci = 0, deleting = false;
+  inputEl.setAttribute('placeholder', '');
+  function tick() {
+    const w = words[wi] || '';
+    if (!deleting) {
+      ci++;
+      inputEl.setAttribute('placeholder', w.substring(0, ci) + (ci < w.length ? '|' : ''));
+      if (ci >= w.length) {
+        // pause then delete
+        setTimeout(() => { deleting = true; tick(); }, pause);
+        return;
+      }
+    } else {
+      ci--;
+      inputEl.setAttribute('placeholder', w.substring(0, ci) + (ci ? '|' : ''));
+      if (ci <= 0) {
+        deleting = false;
+        wi = (wi + 1) % words.length;
+      }
+    }
+    placeholderTimer = setTimeout(tick, deleting ? speed / 2 : speed);
+  }
+  tick();
+
+  // stop on focus
+  const stopFn = () => stopPlaceholderTypewriter(inputEl);
+  inputEl.addEventListener('focus', stopFn, { once: true });
+  inputEl.addEventListener('input', stopFn, { once: true });
+  return () => stopPlaceholderTypewriter(inputEl);
+}
+function stopPlaceholderTypewriter(inputEl) {
+  if (placeholderTimer) { clearTimeout(placeholderTimer); placeholderTimer = null; }
+  if (inputEl) inputEl.setAttribute('placeholder', '');
 }
 
 
@@ -153,3 +199,6 @@ document.querySelectorAll(".mode-text").forEach((text)=>{
 
 // loads brands from data.js
 loadBrandOptions()
+
+// starts placeholder typing animation if search input exists
+if (searchInput) startPlaceholderTypewriter(searchInput, PLACEHOLDER_WORDS, 90, 1300);
