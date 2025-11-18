@@ -24,6 +24,7 @@ if (!resultsSection) {
   resultsSection = container;
 }
 
+
 // Modal containers (one for details modal, one for instruction modal)
 // Create them now (hidden by default)
 let detailsModal = document.getElementById("details-modal");

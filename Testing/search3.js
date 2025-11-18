@@ -25,6 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
       document.body.appendChild(resultsSection);
     }
   }
+  
 
   // header bar above results (back + heading) - create only once
   let resultsHeaderBar = document.getElementById("results-header-bar");
@@ -130,6 +131,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // render parts list into resultsSection, and show header with categoryName
   function renderPartsList(parts = [], categoryName = "") {
+   identifiersSection.style.display = "block"
+   document.querySelector('.identifiers h1').style.display = "none"
+   document.querySelector('.identifiers p').style.display = "none"
     // show header bar if categoryName
     if (categoryName) {
       resultsHeaderBar.style.display = "";
