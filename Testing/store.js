@@ -16,6 +16,7 @@ const STORE_SESSION_CART_KEY = "manny_store_cart_v1";
 // ---------- Sample dataset (variants) ----------
 // Keep this small for demo; expand for real usage.
 
+/*
 const storeData = [
   {
     id: 1,
@@ -125,6 +126,9 @@ const storeData = [
     ]
   }
 ];
+*/
+
+import {storeData} from "./data.js"
 
 // ---------- App State ----------
 const state = {

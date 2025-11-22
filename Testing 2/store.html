@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manny Autos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="store.css">
+</head>
+<body>
+ <header class="main-header">
+    <div class="header-inner">
+      <div class="logo">
+        <!-- Use your provided logo image here -->
+        <img src="../images/logo.jpg" alt="Manny Autos logo">
+      </div>
+
+      <nav class="nav">
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="search.html" class="nav-link">Search</a></li>
+          <li><a href="store.html" class="nav-link">Store</a></li>
+        </ul>
+        
+        <button class="mobile-cart-btn" type="button" aria-label="View cart (0 items)" aria-controls="cart-panel">
+        <!-- inline cart SVG -->
+        <svg class="cart-icon" width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+          <path d="M3 3h2l1.2 6.4A2 2 0 0 0 8.2 11h9.6a2 2 0 0 0 1.98-1.6L21 5H6" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="10" cy="19" r="1.4" fill="#fff"></circle>
+          <circle cx="18" cy="19" r="1.4" fill="#fff"></circle>
+        </svg>
+        <span class="cart-label">View Cart</span>
+        <span class="cart-count" aria-hidden="true"> (0)</span>
+      </button>
+
+        <!-- Hamburger button (visible on small screens) -->
+        <button class="hamburger" aria-label="Open menu" aria-expanded="false">
+          <!-- inline SVG hamburger -->
+          <svg width="28" height="18" viewBox="0 0 28 18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+            <rect width="28" height="2" rx="1" fill="#0B3B6F"></rect>
+            <rect y="8" width="28" height="2" rx="1" fill="#0B3B6F"></rect>
+            <rect y="16" width="28" height="2" rx="1" fill="#0B3B6F"></rect>
+          </svg>
+        </button>
+      </nav>
+    </div>
+  </header>
+  
+<!-- Mobile sidebar (initially hidden; JS toggles css rule right: -100% to 0% to show) -->
+<aside class="mobile-sidebar" id="mobileSidebar" aria-hidden="true" role="dialog" aria-label="Main menu">
+  <div class="mobile-sidebar-inner">
+    <div class="mobile-sidebar-top">
+      <button class="mobile-close" aria-label="Close menu">
+        <!-- inline SVG X -->
+        <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+          <path d="M2 2 L18 18 M18 2 L2 18" stroke="#0B3B6F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <nav aria-label="Mobile navigation">
+      <ul class="mobile-nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="../Search/search.html">Search</a></li>
+        <li><a href="../Store/store.html" class="active" aria-current="page">Store</a></li>
+      </ul>
+    </nav>
+
+    <!-- Cart button placed below the nav links -->
+    <div class="mobile-sidebar-bottom">
+      <button class="mobile-cart-btn" type="button" aria-label="View cart (0 items)" aria-controls="cart-panel">
+        <!-- inline cart SVG -->
+        <svg class="cart-icon" width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+          <path d="M3 3h2l1.2 6.4A2 2 0 0 0 8.2 11h9.6a2 2 0 0 0 1.98-1.6L21 5H6" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="10" cy="19" r="1.4" fill="#fff"></circle>
+          <circle cx="18" cy="19" r="1.4" fill="#fff"></circle>
+        </svg>
+        <span class="cart-label">View Cart</span>
+        <span class="cart-count" aria-hidden="true"> (0)</span>
+      </button>
+    </div>
+  </div>
+</aside>
+
+  
+  <section class="search-filter">
+   <form class="search-form" role="search" aria-label="Search parts form">
+    <input type="text" placeholder="Search for parts" id="search-input" />
+    <button type="button" class="filter-btn" aria-label="Open filters">
+      <!-- filter SVG -->
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M3 5h18M6 12h12M10 19h4" stroke="#0B3B6F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+   </form>
+  </section>
+
+  <section class="categories" aria-label="Categories list">
+    <button class="category-filter active">All</button>
+    <button class="category-filter">Brakes</button>
+    <button class="category-filter">Filters</button>
+    <button class="category-filter">Electrical</button>
+    <button class="category-filter">Lighting</button>
+    <button class="category-filter">Consumables</button>
+    <button class="category-filter">Others</button>
+  </section>
+  
+        <!-- ---------- Featured strip ---------- -->
+      <section class="store-strip" aria-labelledby="featured-heading">
+        <div class="strip-header">
+          <h3 id="featured-heading" class="strip-title">Featured</h3>
+          <div class="strip-actions">
+            <button class="strip-viewall" type="button" aria-controls="section-modal" aria-haspopup="dialog">View all</button>
+          </div>
+        </div>
+
+        <div class="strip-track" role="list">
+          <!-- Card 1 -->
+          <article class="strip-card" tabindex="0" role="listitem" aria-label="Brake pad set, ₦9,500 — ₦12,000">
+            <div class="card-thumb">
+              <img src="../images/brake pads.jpg" alt="Brake pad">
+            </div>
+            <div>
+              <div class="card-title">Brake Pad Set</div>
+              <div class="card-desc">Ceramic pads — quieter, longer life.</div>
+            </div>
+            <div class="card-meta">
+              <div class="card-price">₦9,500 — ₦12,000</div>
+              <div class="badge in-stock">In stock</div>
+            </div>
+            <div class="card-actions">
+              <button class="card-btn view" type="button" aria-controls="details-modal">View Details</button>
+              <button class="card-btn add" type="button">Add to Cart</button>
+            </div>
+          </article>
+
+          <!-- Card 2 -->
+          <article class="strip-card" tabindex="0" role="listitem" aria-label="Oil Filter, ₦1,800">
+            <div class="card-thumb">
+              <img src="../images/linkage.jpg" alt="Oil Filter">
+            </div>
+            <div>
+              <div class="card-title">Oil Filter</div>
+              <div class="card-desc">High-flow filter — protects engine.</div>
+            </div>
+            <div class="card-meta">
+              <div class="card-price">₦1,800</div>
+              <div class="badge in-stock">In stock</div>
+            </div>
+            <div class="card-actions">
+              <button class="card-btn view" type="button" aria-controls="details-modal">View Details</button>
+              <button class="card-btn add" type="button">Add to Cart</button>
+            </div>
+          </article>
+
+          <!-- Card 3 -->
+          <article class="strip-card" tabindex="0" role="listitem" aria-label="Headlight Bulb (H4), ₦1,200">
+            <div class="card-thumb">
+              <img src="https://via.placeholder.com/400x300?text=Headlight+H4" alt="Headlight bulb">
+            </div>
+            <div>
+              <div class="card-title">Headlight Bulb (H4)</div>
+              <div class="card-desc">Long-life halogen bulb.</div>
+            </div>
+            <div class="card-meta">
+              <div class="card-price">₦1,200</div>
+              <div class="badge">Low stock</div>
+            </div>
+            <div class="card-actions">
+              <button class="card-btn view" type="button" aria-controls="details-modal">View Details</button>
+              <button class="card-btn add" type="button">Add to Cart</button>
+            </div>
+          </article>
+
+          <!-- (repeat more cards as needed) -->
+        </div>
+      </section>
+
+      <!-- ---------- New Arrivals strip ---------- -->
+      <section class="store-strip" aria-labelledby="new-arrivals-heading">
+        <div class="strip-header">
+          <h3 id="new-arrivals-heading" class="strip-title">New Arrivals</h3>
+          <div class="strip-actions">
+            <button class="strip-viewall" type="button">View all</button>
+          </div>
+        </div>
+
+        <div class="strip-track" role="list">
+          <article class="strip-card" tabindex="0" role="listitem" aria-label="Air Filter, ₦2,200">
+            <div class="card-thumb"><img src="../images/shaft heads.jpg" alt="Air Filter"></div>
+            <div><div class="card-title">Air Filter</div><div class="card-desc">Improves airflow & life.</div></div>
+            <div class="card-meta"><div class="card-price">₦2,200</div><div class="badge in-stock">In stock</div></div>
+            <div class="card-actions"><button class="card-btn view" type="button">View Details</button><button class="card-btn add" type="button">Add to Cart</button></div>
+          </article>
+
+          <article class="strip-card" tabindex="0" role="listitem" aria-label="Spark Plug, ₦900">
+            <div class="card-thumb"><img src="../images/tie rod end.jpg" alt="Spark Plug"></div>
+            <div><div class="card-title">Spark Plug</div><div class="card-desc">Platinum plug for efficiency.</div></div>
+            <div class="card-meta"><div class="card-price">₦900</div><div class="badge">In stock</div></div>
+            <div class="card-actions"><button class="card-btn view" type="button">View Details</button><button class="card-btn add" type="button">Add to Cart</button></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ---------- Example Category strip (Engine Parts) ---------- -->
+      <section class="store-strip" aria-labelledby="engine-heading">
+        <div class="strip-header">
+          <h3 id="engine-heading" class="strip-title">Engine Parts</h3>
+          <div class="strip-actions">
+            <button class="strip-viewall" type="button">View all</button>
+          </div>
+        </div>
+
+        <div class="strip-track" role="list">
+          <article class="strip-card" tabindex="0" role="listitem" aria-label="Radiator Hose, ₦3,400">
+            <div class="card-thumb"><img src="https://via.placeholder.com/400x300?text=Radiator+Hose" alt="Radiator Hose"></div>
+            <div><div class="card-title">Radiator Hose</div><div class="card-desc">Reinforced rubber hose.</div></div>
+            <div class="card-meta"><div class="card-price">₦3,400</div><div class="badge in-stock">In stock</div></div>
+            <div class="card-actions"><button class="card-btn view" type="button">View Details</button><button class="card-btn add" type="button">Add to Cart</button></div>
+          </article>
+
+          <article class="strip-card" tabindex="0" role="listitem" aria-label="Timing Belt, ₦6,200">
+            <div class="card-thumb"><img src="https://via.placeholder.com/400x300?text=Timing+Belt" alt="Timing Belt"></div>
+            <div><div class="card-title">Timing Belt</div><div class="card-desc">High-durability belt.</div></div>
+            <div class="card-meta"><div class="card-price">₦6,200</div><div class="badge">Low stock</div></div>
+            <div class="card-actions"><button class="card-btn view" type="button">View Details</button><button class="card-btn add" type="button">Add to Cart</button></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- end content -->
+    </div>
+
+  </main>
+
+  <!-- ---------- Section expand modal (example) ---------- -->
+  <div id="section-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="sectionModalTitle">
+    <div class="modal-panel" role="document">
+      <div class="modal-header">
+        <h2 id="sectionModalTitle" class="modal-title">Featured — All items</h2>
+        <button class="modal-close" type="button" aria-label="Close section view">✕</button>
+      </div>
+
+      <div class="modal-grid">
+        <!-- Example larger cards in expanded view -->
+        <article style="background:#fff;padding:12px;border-radius:10px;box-shadow:var(--card-shadow)">
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <img src="https://via.placeholder.com/220x140?text=Brake+Pad" alt="" style="width:220px;height:140px;object-fit:cover;border-radius:8px">
+            <div>
+              <h3 style="margin:0;color:var(--navy)">Brake Pad Set</h3>
+              <p style="color:var(--muted);margin:6px 0">Full description with compatibilities and short specs.</p>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="btn-order">Add to cart</button>
+                <button class="btn-secondary">View Details</button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- replicate more items as needed -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ---------- Details modal (product) ---------- -->
+  <div id="details-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="detailsModalTitle">
+    <div class="modal-panel" role="document">
+      <div class="modal-header">
+        <h2 id="detailsModalTitle" class="modal-title">Product details</h2>
+        <button class="modal-close" type="button" aria-label="Close product details">✕</button>
+      </div>
+
+  <script type="module" src="store.js"></script>
+</body>
+</html>
