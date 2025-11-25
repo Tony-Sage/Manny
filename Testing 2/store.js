@@ -17,6 +17,7 @@ const STORE_SESSION_CART_KEY = "manny_store_cart_v1";
    - strips: computed mapping: featured, categories, othersByTag, tagList
    ========================= */
 const state = {
+  currentExpandedSection: null,
   parts: storeData.slice(),
   filters: {
     mode: "category", // 'category' | 'brand' | 'model' | 'others'
@@ -372,7 +373,8 @@ function populateTopFilterButtons() {
   allBtn.addEventListener("click", () => {
     // clear selected for current mode
     clearSelectedForMode(state.filters.mode);
-    renderAllStrips();
+    if (state.currentExpandedSection) renderExpandedSection(state.currentExpandedSection);
+      else renderAllStrips();
     updateAppliedFiltersUI();
   });
   container.appendChild(allBtn);
@@ -404,7 +406,9 @@ function populateTopFilterButtons() {
       toggleSelectionForMode(state.filters.mode, v);
       // refresh UI
       populateTopFilterButtons();
-      renderAllStrips();
+      if (state.currentExpandedSection) renderExpandedSection(state.currentExpandedSection);
+      else renderAllStrips();
+
       updateAppliedFiltersUI();
     });
     // visually active if selected
@@ -485,7 +489,9 @@ function updateAppliedFiltersUI(){
       if (item.type === "tag") state.filters.selected.tags.delete(item.value);
       updateAppliedFiltersUI();
       populateTopFilterButtons();
-      renderAllStrips();
+      if (state.currentExpandedSection) renderExpandedSection(state.currentExpandedSection);
+      else renderAllStrips();
+
     });
     chips.appendChild(b);
   });
@@ -604,71 +610,128 @@ function attachStripViewAllHandlers(){
     btn.addEventListener("click", onStripViewAll);
   });
 }
-function onStripViewAll(e){
+
+// ------------------ Expanded Section (in-page) ------------------
+
+function onStripViewAll(e) {
   const section = e.currentTarget.closest(".store-strip");
   if (!section) return;
   const title = section.querySelector(".strip-title")?.textContent?.trim() || "Items";
-  openSectionModal(title);
+  enterExpandedSection(title);
 }
-function openSectionModal(title){
-  // populate modal grid with all parts matching this title as category OR tag
-  const grid = sectionModal.querySelector(".modal-grid");
-  grid.innerHTML = "";
-  let parts = [];
-  // if matches canonical category or any category in mapping -> treat as category
-  if (state.strips.categories[title]) {
-    parts = state.strips.categories[title].map(id => state.parts.find(p => p.id===id)).filter(Boolean);
-  } else if (state.strips.othersByTag[title]) {
-    parts = state.strips.othersByTag[title].map(id => state.parts.find(p => p.id===id)).filter(Boolean);
-  } else if (title.toLowerCase().includes("featured")) {
-    parts = state.strips.featured.map(id => state.parts.find(p => p.id===id)).filter(Boolean);
+
+let expandedContainer = null;
+let hiddenDefaultNodes = []; // nodes hidden when expanded view is active
+
+function enterExpandedSection(title) {
+  // Save title in state
+  state.currentExpandedSection = title;
+  buildStripsMapping();
+
+  // Ensure appliedFiltersContainer exists (we insert after it)
+  if (!appliedFiltersContainer) mountAppliedFiltersUI();
+
+  // Find parent and hide everything after the appliedFiltersContainer
+  const parent = appliedFiltersContainer.parentElement;
+  hiddenDefaultNodes = [];
+  let node = appliedFiltersContainer.nextElementSibling;
+  while (node) {
+    hiddenDefaultNodes.push(node);
+    // hide node (preserve inline style by storing original in dataset)
+    node.dataset.__displayBackup = node.style.display || "";
+    node.style.display = "none";
+    node = node.nextElementSibling;
   }
-  // apply current filters on parts
-  parts = parts.filter(p => applyFiltersToPart(p));
-  if (!parts.length) {
-    grid.innerHTML = `<div style="padding:12px">No items found for this section.</div>`;
-  } else {
-    parts.forEach(p => {
-      const art = document.createElement("article");
-      art.style.background = "#fff";
-      art.style.padding = "12px";
-      art.style.borderRadius = "10px";
-      art.style.boxShadow = "var(--card-shadow)";
-      art.innerHTML = `
-        <div style="display:flex;gap:12px;align-items:flex-start">
-          <img src="${escapeHtml(p.image)}" style="width:220px;height:140px;object-fit:cover;border-radius:8px">
-          <div style="flex:1">
-            <h3 style="margin:0;color:var(--navy)">${escapeHtml(p.name)}</h3>
-            <p style="color:var(--muted);margin:6px 0">${escapeHtml(p.description)}</p>
-            <div style="display:flex;gap:8px;margin-top:8px">
-              <button class="btn-order modal-add" data-part-id="${p.id}">Add to cart</button>
-              <button class="btn-secondary modal-view" data-part-id="${p.id}">View Details</button>
-            </div>
-          </div>
+
+  // create expanded container
+  expandedContainer = document.createElement("div");
+  expandedContainer.id = "expanded-section";
+  expandedContainer.style.padding = "1rem";
+  expandedContainer.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button id="expanded-back" class="btn-secondary" aria-label="Back to store">← Back</button>
+        <div>
+          <div style="font-weight:800;color:var(--navy);font-size:1rem" id="expanded-title">${escapeHtml(title)}</div>
+          <div style="font-size:0.9rem;color:var(--muted)" id="expanded-count">0 items</div>
         </div>
-      `;
-      grid.appendChild(art);
-    });
-  }
-  // hook modal buttons via delegation
-  sectionModal.classList.add("show");
-  document.body.classList.add("modal-open");
-  // attach delegation once
-  sectionModal.onclick = (ev) => {
-    const add = ev.target.closest(".modal-add");
-    const view = ev.target.closest(".modal-view");
-    if (add) {
-      const id = add.dataset.partId;
-      closeModal(sectionModal);
-      openDetailsModalForPart(id, { startAction: "add-to-cart" });
-    } else if (view) {
-      const id = view.dataset.partId;
-      openDetailsModalForPart(id);
-    } else if (ev.target.classList.contains("modal-close")) {
-      closeModal(sectionModal);
-    }
-  };
+      </div>
+      <div>
+        <!-- placeholder: could add sort or view toggles -->
+      </div>
+    </div>
+    <div id="expanded-grid" class="products-grid" style="margin-top:8px"></div>
+  `;
+  // insert after appliedFiltersContainer
+  appliedFiltersContainer.insertAdjacentElement("afterend", expandedContainer);
+
+  // hook back button
+  expandedContainer.querySelector("#expanded-back").addEventListener("click", () => {
+    restoreDefaultView();
+  });
+
+  // render content
+  renderExpandedSection(title);
 }
+
+function renderExpandedSection(title) {
+  if (!expandedContainer) return;
+  const grid = expandedContainer.querySelector("#expanded-grid");
+  const countEl = expandedContainer.querySelector("#expanded-count");
+  grid.innerHTML = "";
+
+  // Determine parts to show based on title (category, tag, or featured)
+  let parts = [];
+  if (state.strips.categories[title]) {
+    parts = state.strips.categories[title].map(id => state.parts.find(p => p.id === id)).filter(Boolean);
+  } else if (state.strips.othersByTag[title]) {
+    parts = state.strips.othersByTag[title].map(id => state.parts.find(p => p.id === id)).filter(Boolean);
+  } else if (title.toLowerCase().includes("featured")) {
+    parts = state.strips.featured.map(id => state.parts.find(p => p.id === id)).filter(Boolean);
+  } else {
+    // fallback: try matching category names case-insensitively
+    parts = state.parts.filter(p => (p.category || "").toLowerCase() === (title || "").toLowerCase());
+  }
+
+  // apply active filters & search
+  parts = parts.filter(p => applyFiltersToPart(p));
+
+  // update count
+  countEl.textContent = `${parts.length} item${parts.length === 1 ? "" : "s"}`;
+
+  if (!parts.length) {
+    grid.innerHTML = `<div style="padding:18px">No items match current filters.</div>`;
+    return;
+  }
+
+  // render cards (use same small card appearance)
+  parts.forEach(p => {
+    // create a card node functionally identical to strip-card
+    const node = createStripCard(p);
+    // style tweak: ensure grid behavior consistent
+    node.style.width = ""; // allow grid to size it
+    node.style.minWidth = "";
+    grid.appendChild(node);
+  });
+}
+
+function restoreDefaultView() {
+  // remove expanded container
+  if (expandedContainer) {
+    expandedContainer.remove();
+    expandedContainer = null;
+  }
+  // unhide hidden default nodes
+  hiddenDefaultNodes.forEach(n => {
+    n.style.display = n.dataset.__displayBackup || "";
+    delete n.dataset.__displayBackup;
+  });
+  hiddenDefaultNodes = [];
+  state.currentExpandedSection = null;
+  // re-render default strips to reflect any filters changed while expanded
+  renderAllStrips();
+}
+
 
 /* =========================
    Details modal & selection flow
@@ -1059,7 +1122,11 @@ function attachGlobalHandlers() {
   mountAppliedFiltersUI();
 
   // search input
-  if (searchInput) searchInput.addEventListener("input", debounce(() => { renderAllStrips(); }, 250));
+  if (searchInput) searchInput.addEventListener("input", debounce(() => {
+  if (state.currentExpandedSection) renderExpandedSection(state.currentExpandedSection);
+  else renderAllStrips();
+}, 250));
+
 
   // hamburger toggle
   if (hamburgerBtn && mobileSidebar) {
