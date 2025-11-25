@@ -1,157 +1,61 @@
 // store.js
-// Manny Autos — store page behavior
-// Features:
-// - dataset with variant prices
-// - mobile sidebar toggle
-// - cart modal + quantity controls + totals + Place Order -> WhatsApp
-// - filter mode dropdown + dynamic reuse of .category-filter buttons
-// - applied filters UI with removable chips
-// - rendering parts into strip tracks and "View All" / section modal
-// - details modal with Brand -> Model -> Year selection (auto-skip when filters narrow)
-// - add-to-cart flows and Quick Order (WhatsApp)
+// Manny Autos — store page behavior (updated)
+// - Adds "Others" filter mode (tags)
+// - Splits page into three sections: Top (Featured), Middle (Categories), Bottom (Others)
+// - Parts can appear in multiple tracks (uses `tracks` array or inferred placement)
+// - Product cards open details modal by clicking the card (no separate buttons)
 
-const BUSSINESS_WHATSAPP = "+2348012345678"; // <-- REPLACE with your number in international format
+import {storeData} from "./data.js"
+
+const BUSSINESS_WHATSAPP = "+2348012345678"; // <-- REPLACE with your number
 const STORE_SESSION_CART_KEY = "manny_store_cart_v1";
 
-// ---------- Sample dataset (variants) ----------
-// Keep this small for demo; expand for real usage.
-
-
-import { storeData2 as storeData } from "./data.js";
-
-
-// const storeData = [
-//   {
-//     id: 1,
-//     name: "Brake Pad Set",
-//     slug: "brake-pad-set",
-//     description: "Ceramic brake pad set — quieter and longer life.",
-//     image: "../images/brake pads.jpg",
-//     category: "Brakes",
-//     compatibilities: [
-//       { brand: "Toyota", model: "Corolla", years: [2010,2011,2012] },
-//       { brand: "Honda", model: "Civic", years: [2014,2015,2016] },
-//       { brand: "Honda", model: "Accord", years: [2012,2013,2014] }
-//     ],
-//     // variants: each entry is a specific brand+model+year price & availability
-//     variants: [
-//       { brand: "Toyota", model: "Corolla", year: 2010, price: 9500, availability: "In stock" },
-//       { brand: "Toyota", model: "Corolla", year: 2011, price: 10000, availability: "In stock" },
-//       { brand: "Honda", model: "Civic", year: 2014, price: 12000, availability: "Low stock" },
-//       { brand: "Honda", model: "Civic", year: 2015, price: 11500, availability: "Low stock" },
-//       { brand: "Honda", model: "Accord", year: 2012, price: 12500, availability: "In stock" }
-//     ]
-//   },
-
-//   {
-//     id: 2,
-//     name: "Oil Filter",
-//     slug: "oil-filter",
-//     description: "High-flow oil filter. Protects engine from contaminants.",
-//     image: "../images/linkage.jpg",
-//     category: "Filters",
-//     compatibilities: [
-//       { brand: "Toyota", model: "Corolla", years: [2010,2011,2012,2013] },
-//       { brand: "Nissan", model: "Sentra", years: [2015,2016] }
-//     ],
-//     variants: [
-//       { brand: "Toyota", model: "Corolla", year: 2012, price: 1800, availability: "In stock" },
-//       { brand: "Toyota", model: "Corolla", year: 2013, price: 1800, availability: "In stock" },
-//       { brand: "Nissan", model: "Sentra", year: 2015, price: 2000, availability: "In stock" }
-//     ]
-//   },
-
-//   {
-//     id: 3,
-//     name: "Headlight Bulb (H4)",
-//     slug: "headlight-h4",
-//     description: "Bright halogen H4 bulb. Long life and good penetration.",
-//     image: "https://via.placeholder.com/400x300?text=Headlight+H4",
-//     category: "Lighting",
-//     compatibilities: [
-//       { brand: "Toyota", model: "Avanza", years: [2010,2011] },
-//       { brand: "Honda", model: "Civic", years: [2014,2015] }
-//     ],
-//     variants: [
-//       { brand: "Toyota", model: "Avanza", year: 2010, price: 1200, availability: "Low stock" },
-//       { brand: "Honda", model: "Civic", year: 2014, price: 1400, availability: "In stock" }
-//     ]
-//   },
-
-//   {
-//     id: 4,
-//     name: "Air Filter",
-//     slug: "air-filter",
-//     description: "Premium air filter for better airflow and engine life.",
-//     image: "../images/shaft heads.jpg",
-//     category: "Filters",
-//     compatibilities: [
-//       { brand: "Toyota", model: "Corolla", years: [2010,2011,2012] },
-//       { brand: "Honda", model: "Civic", years: [2015,2016] }
-//     ],
-//     variants: [
-//       { brand: "Toyota", model: "Corolla", year: 2012, price: 2200, availability: "In stock" },
-//       { brand: "Honda", model: "Civic", year: 2015, price: 2500, availability: "In stock" }
-//     ]
-//   },
-
-//   {
-//     id: 5,
-//     name: "Radiator Hose",
-//     slug: "radiator-hose",
-//     description: "Reinforced rubber radiator hose — heat and pressure resistant.",
-//     image: "https://via.placeholder.com/400x300?text=Radiator+Hose",
-//     category: "Engine Parts",
-//     compatibilities: [
-//       { brand: "Nissan", model: "Altima", years: [2014,2015] },
-//       { brand: "Toyota", model: "Camry", years: [2013,2014] }
-//     ],
-//     variants: [
-//       { brand: "Nissan", model: "Altima", year: 2014, price: 3400, availability: "In stock" },
-//       { brand: "Toyota", model: "Camry", year: 2013, price: 3600, availability: "Low stock" }
-//     ]
-//   },
-
-//   {
-//     id: 6,
-//     name: "Timing Belt",
-//     slug: "timing-belt",
-//     description: "High-durability timing belt.",
-//     image: "https://via.placeholder.com/400x300?text=Timing+Belt",
-//     category: "Engine Parts",
-//     compatibilities: [
-//       { brand: "Toyota", model: "Corolla", years: [2010,2011] },
-//       { brand: "Honda", model: "Accord", years: [2012] }
-//     ],
-//     variants: [
-//       { brand: "Toyota", model: "Corolla", year: 2010, price: 6200, availability: "Low stock" },
-//       { brand: "Honda", model: "Accord", year: 2012, price: 6500, availability: "In stock" }
-//     ]
-//   }
-// ];
-
-
-// ---------- App State ----------
+/* =========================
+   App state
+   - parts: immutable reference to storeData
+   - filters: mode and selected sets
+   - strips: computed mapping: featured, categories, othersByTag, tagList
+   ========================= */
 const state = {
   parts: storeData.slice(),
   filters: {
-    mode: "category", // 'category' | 'brand' | 'model' (default category - used for .category-filter buttons)
+    mode: "category", // 'category' | 'brand' | 'model' | 'others'
     selected: {
       brand: new Set(),
       model: new Set(),
-      category: new Set()
+      category: new Set(),
+      tags: new Set()
     }
   },
-  cart: loadCartFromSession(), // { items: [ {partId, brand, model, year, price, qty} ] }
-  currentSectionView: null // when View All opens - stores the category string
+  cart: loadCartFromSession(),
+  strips: {
+    featured: [],
+    categories: {},     // categoryName -> [partIds]
+    othersByTag: {},    // tag -> [partIds]
+    tagList: []         // list of tags discovered (sorted)
+  },
+  // canonical category order for the middle section
+  canonicalCategories: [
+    "Engine Parts",
+    "Chassis Parts",
+    "Body Parts",
+    "Electrical Accessories",
+    "Interior Accessories"
+  ]
 };
 
-// ---------- Cached DOM nodes ----------
+/* =========================
+   Cached DOM nodes
+   (re-uses existing HTML structure)
+   - We assume the page contains three anchor container elements:
+     1) a top area where the Featured strip is placed (we'll look for .store-strip where .strip-title = "Featured")
+     2) middle area - five category strips (strip-title text exactly as canonicalCategories)
+     3) bottom area - we'll dynamically generate strips for each tag and append to a container with id #others-section
+   If #others-section doesn't exist, we create it at the end of main content.
+   ========================= */
 const filterBtn = document.querySelector(".filter-btn");
-const categoriesRow = document.querySelector(".categories");
+const categoriesRow = document.querySelector(".categories"); // reusable .category-filter buttons
 const searchInput = document.getElementById("search-input");
-const stripViewAllBtns = document.querySelectorAll(".strip-viewall");
-const stripTracks = document.querySelectorAll(".strip-track");
 const sectionModal = document.getElementById("section-modal");
 const detailsModal = document.getElementById("details-modal");
 const mobileSidebar = document.getElementById("mobileSidebar");
@@ -159,87 +63,108 @@ const hamburgerBtn = document.querySelector(".hamburger");
 const mobileCartBtns = document.querySelectorAll(".mobile-cart-btn");
 const bodyEl = document.body;
 
-// containers we'll create for dynamic UI:
-let appliedFiltersContainer = null; // holds the small chips and "See Filters" checkbox
-let filtersDropdownMenu = null; // small menu created when filterBtn clicked
+/* containers we may create */
+let othersSectionContainer = document.getElementById("others-section"); // bottom container for tag strips
+let appliedFiltersContainer = null;
+let filtersDropdownMenu = null;
 let cartModal = null;
-let toastTimer = null;
 
-// ---------- Initialization ----------
-document.addEventListener("DOMContentLoaded", () => {
-  mountAppliedFiltersUI();
-  mountFiltersDropdown();
-  renderStrips(); // initially populate strip cards from state.parts
-  attachGlobalHandlers();
-  updateCartUI();
-});
+/* =========================
+   Utilities
+   ========================= */
+function escapeHtml(s="") { return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
+function formatCurrency(n){ return `₦${Number(n).toLocaleString()}`; }
+function unique(arr){ return Array.from(new Set(arr)); }
 
-// ------------------ DATA HELPERS ------------------
-function uniqueValuesForMode(mode) {
-  // mode: 'category' | 'brand' | 'model'
-  const set = new Set();
-  storeData.forEach(p => {
-    if (mode === "category") set.add(p.category);
-    else if (mode === "brand") {
-      (p.compatibilities || []).forEach(c => c.brand && set.add(c.brand));
-    } else if (mode === "model") {
-      (p.compatibilities || []).forEach(c => c.model && set.add(c.model));
-    }
-  });
-  return Array.from(set).sort();
+/* =========================
+   Persistence: cart
+   ========================= */
+function loadCartFromSession(){
+  try {
+    const raw = sessionStorage.getItem(STORE_SESSION_CART_KEY);
+    return raw ? JSON.parse(raw) : { items: [] };
+  } catch(e){ return { items: [] }; }
 }
+function persistCart(){ try{ sessionStorage.setItem(STORE_SESSION_CART_KEY, JSON.stringify(state.cart)); }catch(e){} }
 
-function variantsForPart(part) {
-  return part.variants || [];
-}
+/* =========================
+   Build strips mapping (featured, categories, othersByTag)
+   - A part can be in multiple tracks.
+   - If part.tracks exists, respect it (e.g. ["featured","brakes","custom-tag"])
+   - Otherwise: include it in:
+       - featured if id appears in a short curated featured list (we choose first N)
+       - category track: its category
+       - tag tracks: every tag in part.tags
+   ========================= */
+function buildStripsMapping() {
+  // reset
+  state.strips.featured = [];
+  state.strips.categories = {};
+  state.strips.othersByTag = {};
+  const tagSet = new Set();
 
-function findPartById(id) {
-  return storeData.find(p => p.id === Number(id));
-}
+  // featured: choose first 8 by default (or parts which explicitly include 'featured' track)
+  const explicitFeatured = state.parts.filter(p => Array.isArray(p.tracks) && p.tracks.includes("featured")).map(p => p.id);
+  if (explicitFeatured.length) {
+    state.strips.featured = explicitFeatured.slice(0, 8);
+  } else {
+    state.strips.featured = state.parts.slice(0, 8).map(p => p.id);
+  }
 
-function formatCurrency(n) {
-  return "₦" + Number(n).toLocaleString();
-}
+  state.parts.forEach(p => {
+    // category track
+    const cat = (p.category || "Uncategorized").trim();
+    if (!state.strips.categories[cat]) state.strips.categories[cat] = [];
+    // a part can appear multiple times in categories? No — categories are unique, but part may appear in more than one track (e.g. both featured and its category)
+    state.strips.categories[cat].push(p.id);
 
-// ------------------ RENDER / UI ------------------
-
-function renderStrips() {
-  // For each strip-track in DOM, get its parent section's title and populate with the first N matching items
-  // We'll map by the section's strip-title text (category).
-  stripTracks.forEach(track => {
-    const section = track.closest(".store-strip");
-    if (!section) return;
-    const titleEl = section.querySelector(".strip-title");
-    const cat = titleEl?.textContent?.trim();
-    // find parts matching this category and current filters
-    const parts = applyFiltersToParts(storeData).filter(p => p.category === cat);
-    // if none, show existing HTML cards (do nothing) — but we will replace content.
-    // clear existing
-    track.innerHTML = "";
-    // take up to 8 items
-    parts.slice(0, 8).forEach(p => {
-      const node = createStripCardNode(p);
-      track.appendChild(node);
+    // tags
+    (p.tags || []).forEach(t => {
+      const tag = String(t).trim();
+      tagSet.add(tag);
+      if (!state.strips.othersByTag[tag]) state.strips.othersByTag[tag] = [];
+      state.strips.othersByTag[tag].push(p.id);
     });
-    // If no matching parts, leave a friendly placeholder
-    if (parts.length === 0) {
-      const placeholder = document.createElement("div");
-      placeholder.className = "strip-empty";
-      placeholder.textContent = "No items match current filters.";
-      track.appendChild(placeholder);
+
+    // explicit tracks array: allow placing into named tracks (besides category and tags)
+    if (Array.isArray(p.tracks)) {
+      p.tracks.forEach(tname => {
+        const tn = String(tname).trim();
+        if (!tn) return;
+        // if "featured" already handled, ignore duplication
+        if (tn.toLowerCase() === "featured") {
+          if (!state.strips.featured.includes(p.id)) state.strips.featured.push(p.id);
+          return;
+        }
+        // if matches one of canonicalCategories, ensure it appears there too
+        if (state.canonicalCategories.includes(tn)) {
+          if (!state.strips.categories[tn]) state.strips.categories[tn] = [];
+          if (!state.strips.categories[tn].includes(p.id)) state.strips.categories[tn].push(p.id);
+          return;
+        }
+        // otherwise treat as a tag-equivalent (others)
+        tagSet.add(tn);
+        if (!state.strips.othersByTag[tn]) state.strips.othersByTag[tn] = [];
+        if (!state.strips.othersByTag[tn].includes(p.id)) state.strips.othersByTag[tn].push(p.id);
+      });
     }
   });
-  updateAppliedFiltersUI();
+
+  state.strips.tagList = Array.from(tagSet).sort();
 }
 
-function createStripCardNode(part) {
-  const article = document.createElement("article");
-  article.className = "strip-card";
-  article.setAttribute("tabindex", "0");
-  article.setAttribute("role", "listitem");
-  article.dataset.partId = String(part.id);
-  article.setAttribute("aria-label", `${part.name}, ${part.category}`);
-  article.innerHTML = `
+/* =========================
+   Rendering helpers
+   ========================= */
+
+/** produce a strip-card element (card is clickable) */
+function createStripCard(part) {
+  const el = document.createElement("article");
+  el.className = "strip-card";
+  el.tabIndex = 0;
+  el.setAttribute("role", "listitem");
+  el.dataset.partId = String(part.id);
+  el.innerHTML = `
     <div class="card-thumb"><img src="${escapeHtml(part.image)}" alt="${escapeHtml(part.name)}"></div>
     <div>
       <div class="card-title">${escapeHtml(part.name)}</div>
@@ -249,342 +174,459 @@ function createStripCardNode(part) {
       <div class="card-price">${estimatePriceRange(part)}</div>
       <div class="badge ${hasInStockVariant(part) ? "in-stock" : ""}">${hasInStockVariant(part) ? "In stock" : "Check"}</div>
     </div>
-    <div class="card-actions">
-      <button class="card-btn view" type="button" data-action="view">View Details</button>
-      <button class="card-btn add" type="button" data-action="add">Add to Cart</button>
-    </div>
   `;
-  return article;
+  // clicking anywhere on card opens details modal (not buttons)
+  el.addEventListener("click", () => openDetailsModalForPart(part.id));
+  el.addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter" || ev.key === " ") {
+      ev.preventDefault();
+      openDetailsModalForPart(part.id);
+    }
+  });
+  return el;
 }
 
 function estimatePriceRange(part) {
-  // returns "₦min — ₦max" or single price
-  const v = variantsForPart(part);
-  if (!v.length) return "—";
-  const prices = v.map(x => Number(x.price || 0)).filter(Boolean);
-  if (!prices.length) return "—";
-  const min = Math.min(...prices);
-  const max = Math.max(...prices);
-  return min === max ? formatCurrency(min) : `${formatCurrency(min)} — ${formatCurrency(max)}`;
+  const vs = (part.variants || []).map(v => Number(v.price||0)).filter(Boolean);
+  if (!vs.length) return "—";
+  const mn = Math.min(...vs), mx = Math.max(...vs);
+  return mn === mx ? formatCurrency(mn) : `${formatCurrency(mn)} — ${formatCurrency(mx)}`;
 }
-
 function hasInStockVariant(part) {
-  return (variantsForPart(part) || []).some(v => String(v.availability).toLowerCase().includes("in"));
+  return (part.variants || []).some(v => String(v.availability||"").toLowerCase().includes("in"));
 }
 
-function escapeHtml(s = "") {
-  return String(s)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
-}
+/* =========================
+   Render the three sections:
+   - Top (Featured) — uses existing .store-strip where title includes "Featured"
+   - Middle (Categories) — ensure the five canonical categories exist in DOM; if not create them
+   - Bottom (Others) — ensure an #others-section exists; generate a strip per tag in state.strips.tagList
+   Parts may appear in multiple tracks
+   ========================= */
+function ensureSectionsExist() {
+  // find existing store-strip for Featured; if missing, create and append near top of main
+  const mainRoot = document.querySelector(".store-main") || document.querySelector("main") || document.body;
+  // FEATURED: look for strip-title containing "featured"
+  let featuredStrip = Array.from(document.querySelectorAll(".store-strip")).find(s => (s.querySelector(".strip-title")?.textContent||"").toLowerCase().includes("featured"));
+  if (!featuredStrip) {
+    featuredStrip = createStoreStrip("Featured");
+    // insert at top of mainRoot
+    mainRoot.insertAdjacentElement("afterbegin", featuredStrip);
+  }
 
-// ---------- Filters UI ----------
-
-function mountAppliedFiltersUI() {
-  // Add a container below the categories row to show "See Filters" checkbox + applied chips
-  appliedFiltersContainer = document.createElement("div");
-  appliedFiltersContainer.className = "applied-filters-container";
-  appliedFiltersContainer.style.padding = "0 1rem 0.5rem 1rem";
-  appliedFiltersContainer.innerHTML = `
-    <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;">
-      <input type="checkbox" class="see-filters-checkbox" style="transform:scale(1.05)"/>
-      <span style="font-size:0.95rem;color:var(--muted)">See Filters</span>
-    </label>
-    <div class="applied-chips" style="display:inline-flex;gap:8px;margin-left:14px;flex-wrap:wrap"></div>
-  `;
-  categoriesRow.insertAdjacentElement("afterend", appliedFiltersContainer);
-
-  const checkbox = appliedFiltersContainer.querySelector(".see-filters-checkbox");
-  const chips = appliedFiltersContainer.querySelector(".applied-chips");
-  checkbox.addEventListener("change", (e) => {
-    chips.style.display = e.target.checked ? "inline-flex" : "none";
-  });
-  // initially hide chips
-  chips.style.display = "none";
-}
-
-function updateAppliedFiltersUI() {
-  if (!appliedFiltersContainer) return;
-  const chips = appliedFiltersContainer.querySelector(".applied-chips");
-  chips.innerHTML = "";
-  const { brand, model, category } = state.filters.selected;
-  const all = [];
-  brand.forEach(b => all.push({ type: "brand", value: b }));
-  model.forEach(m => all.push({ type: "model", value: m }));
-  category.forEach(c => all.push({ type: "category", value: c }));
-
-  all.forEach(item => {
-    const chip = document.createElement("button");
-    chip.className = "chip active";
-    chip.setAttribute("data-filter-type", item.type);
-    chip.setAttribute("data-filter-value", item.value);
-    chip.style.fontSize = "0.8rem";
-    chip.style.padding = "4px 8px";
-    chip.innerHTML = `${item.type}: ${item.value} <span aria-hidden="true" style="margin-left:6px;color:#fff;background:#0001;padding:0 6px;border-radius:6px;">✕</span>`;
-    chip.addEventListener("click", () => {
-      // remove this filter
-      removeFilter(item.type, item.value);
-    });
-    chips.appendChild(chip);
+  // MIDDLE: ensure canonical category strips exist in the order specified
+  state.canonicalCategories.forEach(catName => {
+    let strip = Array.from(document.querySelectorAll(".store-strip")).find(s => (s.querySelector(".strip-title")?.textContent||"") === catName);
+    if (!strip) {
+      strip = createStoreStrip(catName);
+      // Append after featured strip (so order: featured, then categories)
+      featuredStrip.insertAdjacentElement("afterend", strip);
+    }
   });
 
-  // toggle See Filters checkbox visibility: if no filters selected hide the box and hide chips area
-  const checkbox = appliedFiltersContainer.querySelector(".see-filters-checkbox");
-  if (all.length === 0) {
-    checkbox.checked = false;
-    appliedFiltersContainer.querySelector(".applied-chips").style.display = "none";
-    appliedFiltersContainer.style.display = "none";
-  } else {
-    appliedFiltersContainer.style.display = "block";
-    // keep existing checkbox state (default off)
-    if (checkbox.checked) appliedFiltersContainer.querySelector(".applied-chips").style.display = "inline-flex";
+  // BOTTOM: ensure others-section container exists after categories
+  othersSectionContainer = document.getElementById("others-section");
+  if (!othersSectionContainer) {
+    othersSectionContainer = document.createElement("div");
+    othersSectionContainer.id = "others-section";
+    // create heading
+    const heading = document.createElement("div");
+    heading.style.display = "flex";
+    heading.style.alignItems = "center";
+    heading.style.justifyContent = "space-between";
+    heading.style.padding = "0 1rem";
+    heading.innerHTML = `<h3 style="margin:12px 0;color:var(--navy);font-weight:700">Others</h3>`;
+    mainRoot.appendChild(heading);
+    mainRoot.appendChild(othersSectionContainer);
   }
 }
 
-// ---------- Filters Dropdown (filter-btn) ----------
-
-function mountFiltersDropdown() {
-  // create a small dropdown menu when filterBtn is clicked
-  filtersDropdownMenu = document.createElement("div");
-  filtersDropdownMenu.className = "filters-dropdown";
-  filtersDropdownMenu.style.position = "absolute";
-  filtersDropdownMenu.style.zIndex = 3000;
-  filtersDropdownMenu.style.background = "#fff";
-  filtersDropdownMenu.style.border = "1px solid rgba(11,58,111,0.08)";
-  filtersDropdownMenu.style.boxShadow = "0 6px 20px rgba(11,58,111,0.06)";
-  filtersDropdownMenu.style.borderRadius = "8px";
-  filtersDropdownMenu.style.padding = "8px";
-  filtersDropdownMenu.style.minWidth = "160px";
-  filtersDropdownMenu.style.display = "none";
-
-  filtersDropdownMenu.innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:8px;">
-      <button type="button" data-mode="category" class="filter-mode-btn">By Category</button>
-      <button type="button" data-mode="brand" class="filter-mode-btn">By Brand</button>
-      <button type="button" data-mode="model" class="filter-mode-btn">By Model</button>
+/** create a .store-strip element with given title text */
+function createStoreStrip(titleText) {
+  const section = document.createElement("section");
+  section.className = "store-strip";
+  section.innerHTML = `
+    <div class="strip-header">
+      <h3 class="strip-title">${escapeHtml(titleText)}</h3>
+      <div class="strip-actions">
+        <button class="strip-viewall" type="button">View all</button>
+      </div>
     </div>
+    <div class="strip-track" role="list"></div>
   `;
-
-  document.body.appendChild(filtersDropdownMenu);
-
-  filterBtn.addEventListener("click", (e) => {
-    const rect = filterBtn.getBoundingClientRect();
-    filtersDropdownMenu.style.top = `${rect.bottom + window.scrollY + 8}px`;
-    filtersDropdownMenu.style.left = `${rect.left + window.scrollX}px`;
-    filtersDropdownMenu.style.display = filtersDropdownMenu.style.display === "none" ? "block" : "none";
-  });
-
-  // pick mode
-  filtersDropdownMenu.addEventListener("click", (e) => {
-    const btn = e.target.closest(".filter-mode-btn");
-    if (!btn) return;
-    const mode = btn.dataset.mode;
-    if (!mode) return;
-    setFilterMode(mode);
-    filtersDropdownMenu.style.display = "none";
-  });
-
-  // outside click closes dropdown
-  document.addEventListener("click", (e) => {
-    if (!filtersDropdownMenu) return;
-    if (e.target === filterBtn || filterBtn.contains(e.target)) return;
-    if (filtersDropdownMenu.contains(e.target)) return;
-    filtersDropdownMenu.style.display = "none";
-  });
+  return section;
 }
 
-function setFilterMode(mode) {
-  state.filters.mode = mode;
-  // regenerate the .category-filter buttons (reuse existing DOM)
-  const container = categoriesRow;
-  container.innerHTML = ""; // reuse same element per your request
-  const values = uniqueValuesForMode(mode);
-  if (!values.length) {
-    const btn = document.createElement("button");
-    btn.className = "category-filter";
-    btn.textContent = "No options";
-    btn.disabled = true;
-    container.appendChild(btn);
+/* render all strips (featured, categories, tag-based others) */
+function renderAllStrips() {
+  // ensure sections exist
+  ensureSectionsExist();
+  // rebuild strips mapping
+  buildStripsMapping();
+
+  // FEATURED strip
+  const featuredStripEl = Array.from(document.querySelectorAll(".store-strip")).find(s => (s.querySelector(".strip-title")?.textContent||"").toLowerCase().includes("featured"));
+  if (featuredStripEl) {
+    const track = featuredStripEl.querySelector(".strip-track");
+    renderTrackByIds(track, state.strips.featured);
+  }
+
+  // MIDDLE: canonical categories
+  state.canonicalCategories.forEach(cat => {
+    // find matching strip element for this title
+    let strip = Array.from(document.querySelectorAll(".store-strip")).find(s => (s.querySelector(".strip-title")?.textContent||"") === cat);
+    if (!strip) {
+      // create if missing and append after featured
+      strip = createStoreStrip(cat);
+      const featuredStrip = featuredStripEl || document.querySelector(".store-strip");
+      featuredStrip?.insertAdjacentElement("afterend", strip);
+    }
+    const ids = (state.strips.categories[cat] || []).slice();
+    renderTrackByIds(strip.querySelector(".strip-track"), ids);
+  });
+
+  // BOTTOM: Others (one strip per tag)
+  // clear existing content in othersSectionContainer and add strips for tags
+  othersSectionContainer.innerHTML = "";
+  state.strips.tagList.forEach(tag => {
+    const strip = createStoreStrip(tag);
+    // override the header title to be tag name (already done)
+    othersSectionContainer.appendChild(strip);
+    const ids = (state.strips.othersByTag[tag] || []).slice();
+    renderTrackByIds(strip.querySelector(".strip-track"), ids);
+  });
+
+  // attach handlers for View All buttons (delegation)
+  attachStripViewAllHandlers();
+}
+
+/** Render one strip-track given array of part ids (applies current filters) */
+function renderTrackByIds(trackEl, ids = []) {
+  if (!trackEl) return;
+  trackEl.innerHTML = "";
+  // map ids -> parts
+  const parts = ids.map(id => state.parts.find(p => p.id === id)).filter(Boolean);
+  // apply global filters (search + selected filters)
+  const filtered = parts.filter(p => applyFiltersToPart(p));
+  if (!filtered.length) {
+    trackEl.innerHTML = `<div class="strip-empty">No items match current filters.</div>`;
     return;
   }
-  // create "All" button that clears selections for that mode
+  filtered.slice(0, 12).forEach(p => {
+    const card = createStripCard(p);
+    trackEl.appendChild(card);
+  });
+}
+
+/* =========================
+   Filtering logic
+   - Filter modes: category | brand | model | others (tags)
+   - selected filters stored in state.filters.selected
+   - applyFiltersToPart returns true if a part should be shown in a track
+   ========================= */
+function applyFiltersToPart(part) {
+  const s = state.filters.selected;
+  const searchQ = (searchInput?.value || "").trim().toLowerCase();
+  // search test
+  if (searchQ) {
+    const hay = `${part.name} ${part.description} ${part.category} ${(part.tags||[]).join(" ")} ${(part.compatibilities||[]).map(c=>c.brand+" "+c.model).join(" ")}`.toLowerCase();
+    if (!hay.includes(searchQ)) return false;
+  }
+  // category filters
+  if (s.category.size > 0 && !s.category.has(part.category)) return false;
+  // brand filters
+  if (s.brand.size > 0) {
+    // check compatibilities and variants
+    const brands = new Set((part.compatibilities || []).map(c => c.brand).concat((part.variants||[]).map(v => v.brand)));
+    const ok = [...s.brand].some(b => brands.has(b));
+    if (!ok) return false;
+  }
+  // model filters
+  if (s.model.size > 0) {
+    const models = new Set((part.compatibilities || []).map(c => c.model).concat((part.variants||[]).map(v => v.model)));
+    const ok = [...s.model].some(m => models.has(m));
+    if (!ok) return false;
+  }
+  // tags (others mode)
+  if (s.tags.size > 0) {
+    const pTags = new Set(part.tags || []);
+    const ok = [...s.tags].some(t => pTags.has(t));
+    if (!ok) return false;
+  }
+  return true;
+}
+
+/* =========================
+   Top filters row (the existing .category-filter buttons)
+   - The same `.categories` container is reused
+   - When filter mode is 'others', we populate the buttons from tags.
+   ========================= */
+function populateTopFilterButtons() {
+  const container = categoriesRow;
+  if (!container) return;
+  container.innerHTML = "";
+  // 'All' button always present to clear mode selections
   const allBtn = document.createElement("button");
-  allBtn.className = "category-filter";
+  allBtn.className = "category-filter active";
   allBtn.textContent = "All";
   allBtn.addEventListener("click", () => {
-    // clear selections for this mode
-    state.filters.selected[mode] = new Set();
-    renderStrips();
+    // clear selected for current mode
+    clearSelectedForMode(state.filters.mode);
+    renderAllStrips();
+    updateAppliedFiltersUI();
   });
   container.appendChild(allBtn);
+
+  // values depend on mode
+  let values = [];
+  if (state.filters.mode === "category") {
+    values = Array.from(new Set(state.parts.map(p => p.category))).sort();
+  } else if (state.filters.mode === "brand") {
+    const set = new Set();
+    state.parts.forEach(p => (p.compatibilities||[]).forEach(c => c.brand && set.add(c.brand)));
+    values = Array.from(set).sort();
+  } else if (state.filters.mode === "model") {
+    const set = new Set();
+    state.parts.forEach(p => (p.compatibilities||[]).forEach(c => c.model && set.add(c.model)));
+    values = Array.from(set).sort();
+  } else if (state.filters.mode === "others") {
+    // tags
+    values = state.strips.tagList.slice();
+  }
 
   values.forEach(v => {
     const btn = document.createElement("button");
     btn.className = "category-filter";
     btn.textContent = v;
+    btn.dataset.value = v;
     btn.addEventListener("click", () => {
-      toggleFilter(mode, v);
+      // toggle selection for current mode
+      toggleSelectionForMode(state.filters.mode, v);
+      // refresh UI
+      populateTopFilterButtons();
+      renderAllStrips();
+      updateAppliedFiltersUI();
     });
+    // visually active if selected
+    let active = false;
+    if (state.filters.mode === "category" && state.filters.selected.category.has(v)) active = true;
+    if (state.filters.mode === "brand" && state.filters.selected.brand.has(v)) active = true;
+    if (state.filters.mode === "model" && state.filters.selected.model.has(v)) active = true;
+    if (state.filters.mode === "others" && state.filters.selected.tags.has(v)) active = true;
+    if (active) btn.classList.add("active"); else btn.classList.remove("active");
     container.appendChild(btn);
   });
 }
 
-// toggle a single filter
-function toggleFilter(type, value) {
-  const set = state.filters.selected[type];
-  if (!set) return;
-  if (set.has(value)) set.delete(value); else set.add(value);
-  // update button active state visually (there are many .category-filter buttons; update them)
-  Array.from(document.querySelectorAll(".category-filter")).forEach(b => {
-    const txt = b.textContent.trim();
-    b.classList.toggle("active", state.filters.selected[state.filters.mode].has(txt));
-  });
-  renderStrips();
-}
-
-function removeFilter(type, value) {
-  const set = state.filters.selected[type];
-  if (!set) return;
-  if (set.has(value)) set.delete(value);
-  renderStrips();
-}
-
-// apply all selected filters to the full parts list
-function applyFiltersToParts(partsArray = []) {
-  const s = state.filters.selected;
-  const searchQ = (searchInput?.value || "").trim().toLowerCase();
-  return partsArray.filter(p => {
-    // search filter first (if any)
-    if (searchQ) {
-      const hay = `${p.name} ${p.description} ${p.category} ${p.compatibilities?.map(c => c.brand + " " + c.model).join(" ")}`.toLowerCase();
-      if (!hay.includes(searchQ)) return false;
-    }
-
-    // category filter
-    if (s.category.size > 0 && !s.category.has(p.category)) return false;
-
-    // brand filter: check compatibilities/variants
-    if (s.brand.size > 0) {
-      const brands = new Set((p.compatibilities || []).map(c => c.brand));
-      const has = [...s.brand].some(b => brands.has(b));
-      if (!has) return false;
-    }
-
-    // model filter
-    if (s.model.size > 0) {
-      const models = new Set((p.compatibilities || []).map(c => c.model));
-      const has = [...s.model].some(m => models.has(m));
-      if (!has) return false;
-    }
-
-    return true;
-  });
-}
-
-// ------------------ Events and Delegation ------------------
-
-function attachGlobalHandlers() {
-  // strip actions (delegation)
-  document.addEventListener("click", (e) => {
-    const viewBtn = e.target.closest(".card-btn.view");
-    if (viewBtn) {
-      const card = viewBtn.closest(".strip-card");
-      if (!card) return;
-      const id = card.dataset.partId;
-      openDetailsModalForPart(id);
-      return;
-    }
-
-    const addBtn = e.target.closest(".card-btn.add");
-    if (addBtn) {
-      const card = addBtn.closest(".strip-card");
-      if (!card) return;
-      const id = card.dataset.partId;
-      // open quick selection flow for adding
-      openDetailsModalForPart(id, { startAction: "add-to-cart" });
-      return;
-    }
-
-    const stripViewAll = e.target.closest(".strip-viewall");
-    if (stripViewAll) {
-      const section = stripViewAll.closest(".store-strip");
-      const title = section?.querySelector(".strip-title")?.textContent?.trim();
-      if (title) openSectionModal(title);
-      return;
-    }
-
-    // modal close
-    if (e.target.matches(".modal-close")) {
-      const modal = e.target.closest(".modal");
-      if (modal) closeModal(modal);
-    }
-  });
-
-  // hamburger toggle mobile sidebar
-  if (hamburgerBtn) {
-    hamburgerBtn.addEventListener("click", () => {
-      if (!mobileSidebar) return;
-      mobileSidebar.classList.toggle("open");
-      mobileSidebar.setAttribute("aria-hidden", mobileSidebar.classList.contains("open") ? "false" : "true");
-    });
+function toggleSelectionForMode(mode, value) {
+  if (mode === "category") {
+    if (state.filters.selected.category.has(value)) state.filters.selected.category.delete(value); else state.filters.selected.category.add(value);
+  } else if (mode === "brand") {
+    if (state.filters.selected.brand.has(value)) state.filters.selected.brand.delete(value); else state.filters.selected.brand.add(value);
+  } else if (mode === "model") {
+    if (state.filters.selected.model.has(value)) state.filters.selected.model.delete(value); else state.filters.selected.model.add(value);
+  } else if (mode === "others") {
+    if (state.filters.selected.tags.has(value)) state.filters.selected.tags.delete(value); else state.filters.selected.tags.add(value);
   }
+}
 
-  // mobile close button
-  const mobileClose = mobileSidebar?.querySelector(".mobile-close");
-  if (mobileClose) {
-    mobileClose.addEventListener("click", () => {
-      mobileSidebar.classList.remove("open");
-      mobileSidebar.setAttribute("aria-hidden", "true");
-    });
+function clearSelectedForMode(mode) {
+  if (mode === "category") state.filters.selected.category = new Set();
+  if (mode === "brand") state.filters.selected.brand = new Set();
+  if (mode === "model") state.filters.selected.model = new Set();
+  if (mode === "others") state.filters.selected.tags = new Set();
+}
+
+/* show applied filters chips UI below the categories row */
+function mountAppliedFiltersUI() {
+  appliedFiltersContainer = document.createElement("div");
+  appliedFiltersContainer.className = "applied-filters-container";
+  appliedFiltersContainer.style.padding = "0 1rem 0.5rem";
+  appliedFiltersContainer.innerHTML = `
+    <label style="display:none;align-items:center;gap:8px;cursor:pointer;" id="see-filters-label">
+      <input type="checkbox" class="see-filters-checkbox" />
+      <span style="font-size:0.95rem;color:var(--muted)">See Filters</span>
+    </label>
+    <div class="applied-chips" style="display:inline-flex;gap:8px;margin-left:14px;flex-wrap:wrap"></div>
+  `;
+  categoriesRow.insertAdjacentElement("afterend", appliedFiltersContainer);
+  const checkbox = appliedFiltersContainer.querySelector(".see-filters-checkbox");
+  const chips = appliedFiltersContainer.querySelector(".applied-chips");
+  chips.style.display = "none";
+  checkbox.addEventListener("change", (e) => {
+    chips.style.display = e.target.checked ? "inline-flex" : "none";
+  });
+}
+function updateAppliedFiltersUI(){
+  if (!appliedFiltersContainer) return;
+  const chips = appliedFiltersContainer.querySelector(".applied-chips");
+  chips.innerHTML = "";
+  const arr = [];
+  state.filters.selected.brand.forEach(v => arr.push({type:"brand", value:v}));
+  state.filters.selected.model.forEach(v => arr.push({type:"model", value:v}));
+  state.filters.selected.category.forEach(v => arr.push({type:"category", value:v}));
+  state.filters.selected.tags.forEach(v => arr.push({type:"tag", value:v}));
+  if (!arr.length) {
+    appliedFiltersContainer.style.display = "none";
+    return;
+  } else {
+    document.querySelector("#see-filters-label").style.display = "inline-flex";
   }
-
-  // mobile cart open
-  mobileCartBtns.forEach(b => {
+  appliedFiltersContainer.style.display = "block";
+  arr.forEach(item => {
+    const b = document.createElement("button");
+    b.className = "chip active";
+    b.textContent = `${item.type}: ${item.value} ×`;
     b.addEventListener("click", () => {
-      openCartModal();
-      // ensure mobile sidebar closed
-      if (mobileSidebar) {
-        mobileSidebar.classList.remove("open");
-        mobileSidebar.setAttribute("aria-hidden", "true");
-      }
+      // remove
+      if (item.type === "brand") state.filters.selected.brand.delete(item.value);
+      if (item.type === "model") state.filters.selected.model.delete(item.value);
+      if (item.type === "category") state.filters.selected.category.delete(item.value);
+      if (item.type === "tag") state.filters.selected.tags.delete(item.value);
+      updateAppliedFiltersUI();
+      populateTopFilterButtons();
+      renderAllStrips();
     });
+    chips.appendChild(b);
+  });
+}
+
+/* =========================
+   Filter dropdown (filterBtn) — choose mode including "Others"
+   ========================= */
+function mountFilterDropdown() {
+  // guard against double-mount
+  if (document.body.dataset.filtersMounted === "1") return;
+  document.body.dataset.filtersMounted = "1";
+
+  // ensure filterBtn exists
+  const filterBtn = document.querySelector(".filter-btn"); // update selector if needed
+  if (!filterBtn) {
+    console.error("mountFilterDropdown: filterBtn not found");
+    return;
+  }
+
+  // create menu
+  const menu = document.createElement("div");
+  menu.className = "filters-dropdown";
+  Object.assign(menu.style, {
+    position: "absolute",
+    zIndex: "9999",
+    background: "#fff",
+    boxShadow: "0 8px 30px rgba(11,58,111,0.12)",
+    borderRadius: "8px",
+    padding: "8px",
+    minWidth: "180px",
+    display: "none" // start hidden
+  });
+  menu.innerHTML = `
+    <button class="fm" data-mode="category" style="display:block;padding:8px;border:0;background:transparent;text-align:left">By Category</button>
+    <button class="fm" data-mode="brand" style="display:block;padding:8px;border:0;background:transparent;text-align:left">By Brand</button>
+    <button class="fm" data-mode="model" style="display:block;padding:8px;border:0;background:transparent;text-align:left">By Model</button>
+    <button class="fm" data-mode="others" style="display:block;padding:8px;border:0;background:transparent;text-align:left">Others (tags)</button>
+  `;
+  document.body.appendChild(menu);
+
+  // helper to position menu under the button
+  function positionMenu() {
+    const rect = filterBtn.getBoundingClientRect();
+    menu.style.left = `${rect.left + window.scrollX}px`;
+    menu.style.top = `${rect.bottom + window.scrollY + 8}px`;
+  }
+
+  // reliable toggle using computed style
+  function isHidden() {
+    return window.getComputedStyle(menu).display === "none";
+  }
+  function showMenu() {
+    positionMenu();
+    menu.style.display = "block";
+  }
+  function hideMenu() {
+    menu.style.display = "none";
+  }
+
+  // named handler (allows safe remove later if needed)
+  function onFilterBtnClick(e) {
+    e.stopPropagation(); // prevent document click from also firing
+    if (isHidden()) {
+      showMenu();
+      // update position if window resized or scrolled while open
+      window.addEventListener("resize", positionMenu);
+      window.addEventListener("scroll", positionMenu, { passive: true });
+    } else {
+      hideMenu();
+      window.removeEventListener("resize", positionMenu);
+      window.removeEventListener("scroll", positionMenu);
+    }
+  }
+
+  // attach once
+  filterBtn.addEventListener("click", onFilterBtnClick);
+
+  // click inside menu
+  menu.addEventListener("click", (e) => {
+    const btn = e.target.closest(".fm");
+    if (!btn) return;
+    const mode = btn.dataset.mode;
+    state.filters.mode = mode;
+    populateTopFilterButtons();
+    updateAppliedFiltersUI();
+    hideMenu();
+    window.removeEventListener("resize", positionMenu);
+    window.removeEventListener("scroll", positionMenu);
   });
 
-  // details modal will contain form elements that we attach dynamically when opened
+  // click outside -> hide
+  document.addEventListener("click", (e) => {
+    // if click was on the filter button (or its children), don't hide
+    if (e.target === filterBtn || filterBtn.contains(e.target)) return;
+    if (menu.contains(e.target)) return;
+    if (!isHidden()) {
+      hideMenu();
+      window.removeEventListener("resize", positionMenu);
+      window.removeEventListener("scroll", positionMenu);
+    }
+  });
+
+  // keep a reference for debugging if needed
+  window.__filtersMenu = { menu, filterBtn, onFilterBtnClick };
 }
 
-// ------------------ MODALS ------------------
 
-function openModal(modalEl) {
-  if (!modalEl) return;
-  modalEl.classList.add("show");
-  // lock scroll
-  document.body.style.overflow = "hidden";
+/* =========================
+   Section View All handlers (delegated)
+   ========================= */
+function attachStripViewAllHandlers(){
+  // clear existing to avoid duplicates
+  document.querySelectorAll(".strip-viewall").forEach(btn => {
+    btn.removeEventListener("click", onStripViewAll);
+    btn.addEventListener("click", onStripViewAll);
+  });
 }
-
-function closeModal(modalEl) {
-  if (!modalEl) return;
-  modalEl.classList.remove("show");
-  // restore scroll if no other modal open
-  if (!document.querySelector(".modal.show")) {
-    document.body.style.overflow = "";
-  }
+function onStripViewAll(e){
+  const section = e.currentTarget.closest(".store-strip");
+  if (!section) return;
+  const title = section.querySelector(".strip-title")?.textContent?.trim() || "Items";
+  openSectionModal(title);
 }
-
-// ---------- Section Modal (View All) ----------
-
-function openSectionModal(title) {
-  state.currentSectionView = title;
-  // populate the sectionModal grid with all items matching the title
+function openSectionModal(title){
+  // populate modal grid with all parts matching this title as category OR tag
   const grid = sectionModal.querySelector(".modal-grid");
   grid.innerHTML = "";
-  const parts = applyFiltersToParts(storeData).filter(p => p.category === title);
+  let parts = [];
+  // if matches canonical category or any category in mapping -> treat as category
+  if (state.strips.categories[title]) {
+    parts = state.strips.categories[title].map(id => state.parts.find(p => p.id===id)).filter(Boolean);
+  } else if (state.strips.othersByTag[title]) {
+    parts = state.strips.othersByTag[title].map(id => state.parts.find(p => p.id===id)).filter(Boolean);
+  } else if (title.toLowerCase().includes("featured")) {
+    parts = state.strips.featured.map(id => state.parts.find(p => p.id===id)).filter(Boolean);
+  }
+  // apply current filters on parts
+  parts = parts.filter(p => applyFiltersToPart(p));
   if (!parts.length) {
-    const empty = document.createElement("div");
-    empty.textContent = "No items found for this section.";
-    grid.appendChild(empty);
+    grid.innerHTML = `<div style="padding:12px">No items found for this section.</div>`;
   } else {
     parts.forEach(p => {
       const art = document.createElement("article");
@@ -594,13 +636,13 @@ function openSectionModal(title) {
       art.style.boxShadow = "var(--card-shadow)";
       art.innerHTML = `
         <div style="display:flex;gap:12px;align-items:flex-start">
-          <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" style="width:220px;height:140px;object-fit:cover;border-radius:8px">
-          <div>
+          <img src="${escapeHtml(p.image)}" style="width:220px;height:140px;object-fit:cover;border-radius:8px">
+          <div style="flex:1">
             <h3 style="margin:0;color:var(--navy)">${escapeHtml(p.name)}</h3>
             <p style="color:var(--muted);margin:6px 0">${escapeHtml(p.description)}</p>
             <div style="display:flex;gap:8px;margin-top:8px">
-              <button class="btn-order" data-action="add" data-part-id="${p.id}">Add to cart</button>
-              <button class="btn-secondary" data-action="view" data-part-id="${p.id}">View Details</button>
+              <button class="btn-order modal-add" data-part-id="${p.id}">Add to cart</button>
+              <button class="btn-secondary modal-view" data-part-id="${p.id}">View Details</button>
             </div>
           </div>
         </div>
@@ -608,33 +650,36 @@ function openSectionModal(title) {
       grid.appendChild(art);
     });
   }
-  openModal(sectionModal);
-  // attach delegation for the modal's buttons
-  sectionModal.querySelector(".modal-grid").addEventListener("click", sectionModalClickHandler);
+  // hook modal buttons via delegation
+  sectionModal.classList.add("show");
+  document.body.classList.add("modal-open");
+  // attach delegation once
+  sectionModal.onclick = (ev) => {
+    const add = ev.target.closest(".modal-add");
+    const view = ev.target.closest(".modal-view");
+    if (add) {
+      const id = add.dataset.partId;
+      closeModal(sectionModal);
+      openDetailsModalForPart(id, { startAction: "add-to-cart" });
+    } else if (view) {
+      const id = view.dataset.partId;
+      openDetailsModalForPart(id);
+    } else if (ev.target.classList.contains("modal-close")) {
+      closeModal(sectionModal);
+    }
+  };
 }
 
-function sectionModalClickHandler(e) {
-  const btn = e.target.closest("[data-action]");
-  if (!btn) return;
-  const action = btn.dataset.action;
-  const partId = btn.dataset.partId;
-  if (action === "view") {
-    closeModal(sectionModal);
-    openDetailsModalForPart(partId);
-  } else if (action === "add") {
-    closeModal(sectionModal);
-    openDetailsModalForPart(partId, { startAction: "add-to-cart" });
-  }
-}
-
-// ---------- Details Modal (product) & selection flow ----------
-
+/* =========================
+   Details modal & selection flow
+   - The details modal content and flow remain the same as your previous implementation.
+   - openDetailsModalForPart(partId, opts) will populate modal-panel and open it.
+   ========================= */
 function openDetailsModalForPart(partId, opts = {}) {
-  const part = findPartById(partId);
+  const part = state.parts.find(p => String(p.id) === String(partId));
   if (!part) return;
-  // build modal content inside detailsModal -> modal-panel
   const panel = detailsModal.querySelector(".modal-panel");
-  panel.innerHTML = ""; // build from scratch
+  panel.innerHTML = ""; // rebuild
   panel.innerHTML = `
     <div class="modal-header">
       <h2 class="modal-title">${escapeHtml(part.name)}</h2>
@@ -658,7 +703,7 @@ function openDetailsModalForPart(partId, opts = {}) {
           <div class="sel-warning" style="color:var(--muted);font-size:0.95rem;margin-top:8px"></div>
         </div>
 
-        <div class="details-actions">
+        <div class="details-actions" style="margin-top:12px">
           <button class="btn-order" data-action="add">Add To Cart</button>
           <button class="btn-secondary" data-action="quick-order">Place Quick Order</button>
         </div>
@@ -666,157 +711,110 @@ function openDetailsModalForPart(partId, opts = {}) {
     </div>
   `;
 
-  // populate brand/model/year options based on part variants and current filters
+  // populate selects from variants
+  const variants = part.variants || [];
   const selBrand = panel.querySelector(".sel-brand");
   const selModel = panel.querySelector(".sel-model");
   const selYear = panel.querySelector(".sel-year");
   const selWarn = panel.querySelector(".sel-warning");
 
-  const variants = variantsForPart(part);
-  const allBrands = Array.from(new Set(variants.map(v => v.brand))).sort();
-  const allModels = Array.from(new Set(variants.map(v => v.model))).sort();
-
-  // If filters already specify a single brand/model for this part, preselect and skip
-  const preselectedBrands = Array.from(state.filters.selected.brand);
-  const preselectedModels = Array.from(state.filters.selected.model);
-
-  // fill brands
-  allBrands.forEach(b => {
-    const opt = document.createElement("option");
-    opt.value = b;
-    opt.textContent = b;
-    selBrand.appendChild(opt);
+  const brands = unique(variants.map(v => v.brand)).sort();
+  const modelsByBrand = {};
+  variants.forEach(v => {
+    if (!modelsByBrand[v.brand]) modelsByBrand[v.brand] = new Set();
+    modelsByBrand[v.brand].add(v.model);
   });
+  Object.keys(modelsByBrand).forEach(b => modelsByBrand[b] = Array.from(modelsByBrand[b]).sort());
 
-  // brand change handler updates models
-  function refreshModelsForBrand(brand) {
+  const yearsByBm = {};
+  variants.forEach(v => {
+    const key = `${v.brand}___${v.model}`;
+    if (!yearsByBm[key]) yearsByBm[key] = new Set();
+    yearsByBm[key].add(v.year);
+  });
+  Object.keys(yearsByBm).forEach(k => yearsByBm[k] = Array.from(yearsByBm[k]).sort());
+
+  brands.forEach(b => selBrand.insertAdjacentHTML("beforeend", `<option value="${escapeHtml(b)}">${escapeHtml(b)}</option>`));
+
+  function populateModels(brand) {
     selModel.innerHTML = `<option value="">Select model</option>`;
-    const models = variants.filter(v => !brand || v.brand === brand).map(v => v.model);
-    const uniq = Array.from(new Set(models)).sort();
-    uniq.forEach(m => {
-      const o = document.createElement("option");
-      o.value = m;
-      o.textContent = m;
-      selModel.appendChild(o);
-    });
-    // hide year until model selected
     selYear.style.display = "none";
+    if (!brand) return;
+    (modelsByBrand[brand]||[]).forEach(m => selModel.insertAdjacentHTML("beforeend", `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`));
   }
-
-  function refreshYearsForBrandModel(brand, model) {
+  function populateYears(brand, model) {
     selYear.innerHTML = `<option value="">Select year</option>`;
-    const ys = variants
-      .filter(v => v.brand === brand && v.model === model)
-      .map(v => v.year)
-      .sort((a,b) => a-b);
-    if (!ys.length) { selYear.style.display = "none"; return; }
-    ys.forEach(y => {
-      const o = document.createElement("option");
-      o.value = String(y);
-      o.textContent = String(y);
-      selYear.appendChild(o);
-    });
+    if (!brand || !model) { selYear.style.display = "none"; return; }
+    const key = `${brand}___${model}`;
+    (yearsByBm[key]||[]).forEach(y => selYear.insertAdjacentHTML("beforeend", `<option value="${String(y)}">${String(y)}</option>`));
     selYear.style.display = "inline-block";
   }
 
-  // if only one brand exists OR filters already narrowed to one brand for this product, preselect
-  if (preselectedBrands.length === 1 && allBrands.includes(preselectedBrands[0])) {
-    selBrand.value = preselectedBrands[0];
-    refreshModelsForBrand(selBrand.value);
-    // if preselected model exists and belongs to this part, preselect model
-    if (preselectedModels.length === 1 && Array.from(new Set(variants.map(v=>v.model))).includes(preselectedModels[0])) {
-      selModel.value = preselectedModels[0];
-      refreshYearsForBrandModel(selBrand.value, selModel.value);
-    }
-  } else if (allBrands.length === 1) {
-    selBrand.value = allBrands[0];
-    refreshModelsForBrand(selBrand.value);
-  } else {
-    // leave brand empty
-    refreshModelsForBrand("");
-  }
+  // auto-deduce brand/model/year if current global filters narrow to single option
+  const autoBrand = deduceBrandFromFiltersAndPart(part);
+  const autoModel = deduceModelFromFiltersAndPart(part, autoBrand);
+  const autoYear = deduceYearFromFiltersAndPart(part, autoBrand, autoModel);
 
-  selBrand.addEventListener("change", (e) => {
-    refreshModelsForBrand(e.target.value);
-    selWarn.textContent = "";
-  });
-  selModel.addEventListener("change", (e) => {
-    refreshYearsForBrandModel(selBrand.value, selModel.value);
-    selWarn.textContent = "";
-  });
+  if (autoBrand) { selBrand.value = autoBrand; populateModels(autoBrand); }
+  if (autoModel) { selModel.value = autoModel; populateYears(selBrand.value, selModel.value); }
+  if (autoYear) { selYear.value = String(autoYear); }
 
-  // button actions inside details modal
+  selBrand.addEventListener("change", () => { populateModels(selBrand.value); selWarn.textContent = ""; });
+  selModel.addEventListener("change", () => { populateYears(selBrand.value, selModel.value); selWarn.textContent = ""; });
+
+  // actions
   panel.querySelectorAll("[data-action]").forEach(btn => {
     btn.addEventListener("click", () => {
       const action = btn.dataset.action;
-      // ensure brand & model & year selection as required
-      const brand = selBrand.value || null;
-      const model = selModel.value || null;
-      const year = selYear.style.display === "none" ? null : selYear.value || null;
+      // final values (allow auto-deductions)
+      const brand = selBrand.value || deduceBrandFromFiltersAndPart(part);
+      const model = selModel.value || deduceModelFromFiltersAndPart(part, brand);
+      const year = (selYear.style.display !== "none" && selYear.value) ? selYear.value : deduceYearFromFiltersAndPart(part, brand, model);
 
-      // If filters already uniquely identify brand/model/year, we can skip
-      // auto-detect: if only one brand possible given current global filters & part variants, pick it
-      const autoBrand = deduceBrandFromFiltersAndPart(part);
-      const autoModel = deduceModelFromFiltersAndPart(part, autoBrand);
-      const autoYear = deduceYearFromFiltersAndPart(part, autoBrand, autoModel);
-
-      const finalBrand = brand || autoBrand;
-      const finalModel = model || autoModel;
-      const finalYear = year || autoYear;
-
-      // if missing brand or model or year, ask user (set warning)
-      if (!finalBrand || !finalModel || !finalYear) {
+      if (!brand || !model || !year) {
         selWarn.textContent = "Please select brand, model and year (or narrow filters first).";
         return;
       }
 
       // find variant
-      const chosenVariant = variants.find(v => String(v.brand) === String(finalBrand) && String(v.model) === String(finalModel) && String(v.year) === String(finalYear));
-      if (!chosenVariant) {
-        selWarn.textContent = "No variant found for this selection. Choose another year/model.";
-        return;
-      }
+      const chosen = variants.find(v => String(v.brand) === String(brand) && String(v.model) === String(model) && String(v.year) === String(year));
+      if (!chosen) { selWarn.textContent = "Variant not available for this selection."; return; }
 
       if (action === "add") {
-        // confirm modal flow
-        openConfirmationModal({ part, variant: chosenVariant, action: "add" });
+        openConfirmationModal({ part, variant: chosen, action: "add" });
       } else if (action === "quick-order") {
-        openConfirmationModal({ part, variant: chosenVariant, action: "quick-order" });
+        openConfirmationModal({ part, variant: chosen, action: "quick-order" });
       }
     });
   });
 
-  openModal(detailsModal);
+  detailsModal.classList.add("show");
+  document.body.classList.add("modal-open");
 }
 
-// helper deductions
+/* helper deduction functions (same behavior as requested) */
 function deduceBrandFromFiltersAndPart(part) {
-  const selectedBrands = Array.from(state.filters.selected.brand);
-  const variants = variantsForPart(part);
-  if (selectedBrands.length === 1 && variants.some(v => v.brand === selectedBrands[0])) return selectedBrands[0];
-  // if part has only one brand available, return it
-  const b = Array.from(new Set(variants.map(v => v.brand)));
-  return b.length === 1 ? b[0] : null;
+  const s = Array.from(state.filters.selected.brand);
+  const partBrands = unique((part.variants||[]).map(v => v.brand));
+  if (s.length === 1 && partBrands.includes(s[0])) return s[0];
+  if (partBrands.length === 1) return partBrands[0];
+  return null;
 }
 function deduceModelFromFiltersAndPart(part, brand) {
-  const selectedModels = Array.from(state.filters.selected.model);
-  const variants = variantsForPart(part);
-  if (selectedModels.length === 1 && variants.some(v => v.model === selectedModels[0])) return selectedModels[0];
-  // if only one model for chosen brand
-  const arr = variants.filter(v => !brand || v.brand === brand).map(v => v.model);
-  const uniq = Array.from(new Set(arr));
-  return uniq.length === 1 ? uniq[0] : null;
+  const s = Array.from(state.filters.selected.model);
+  const models = unique((part.variants||[]).filter(v => !brand || v.brand === brand).map(v => v.model));
+  if (s.length === 1 && models.includes(s[0])) return s[0];
+  if (models.length === 1) return models[0];
+  return null;
 }
 function deduceYearFromFiltersAndPart(part, brand, model) {
-  const variants = variantsForPart(part);
-  const arr = variants.filter(v => (!brand || v.brand === brand) && (!model || v.model === model)).map(v => v.year);
-  const uniq = Array.from(new Set(arr));
-  return uniq.length === 1 ? String(uniq[0]) : null;
+  const yrs = unique((part.variants||[]).filter(v => (!brand || v.brand === brand) && (!model || v.model === model)).map(v => v.year));
+  if (yrs.length === 1) return yrs[0];
+  return null;
 }
 
-// ---------- Confirmation modal (after selection) ----------
+/* Confirmation modal reused (very similar to your previous flow) */
 function openConfirmationModal({ part, variant, action }) {
-  // create a small modal structure (reusing .modal styles)
   let conf = document.getElementById("confirm-modal");
   if (!conf) {
     conf = document.createElement("div");
@@ -826,7 +824,7 @@ function openConfirmationModal({ part, variant, action }) {
       <div class="modal-panel">
         <div class="modal-header">
           <h3 class="modal-title">Confirm selection</h3>
-          <button class="modal-close" aria-label="Close">✕</button>
+          <button class="modal-close">✕</button>
         </div>
         <div class="confirm-body"></div>
         <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
@@ -840,7 +838,7 @@ function openConfirmationModal({ part, variant, action }) {
   }
   conf.querySelector(".confirm-body").innerHTML = `
     <div style="display:flex;gap:12px;align-items:center">
-      <img src="${escapeHtml(part.image)}" alt="${escapeHtml(part.name)}" style="width:120px;height:80px;object-fit:cover;border-radius:8px"/>
+      <img src="${escapeHtml(part.image)}" style="width:120px;height:80px;object-fit:cover;border-radius:8px"/>
       <div>
         <div style="font-weight:700">${escapeHtml(part.name)}</div>
         <div style="color:var(--muted)">Selected: ${escapeHtml(variant.brand)} ${escapeHtml(variant.model)} — ${escapeHtml(String(variant.year))}</div>
@@ -848,82 +846,56 @@ function openConfirmationModal({ part, variant, action }) {
       </div>
     </div>
   `;
-  // action handling
-  conf.querySelectorAll("[data-action]").forEach(b => {
-    b.onclick = () => {
-      const a = b.dataset.action;
-      if (a === "cancel") {
+  conf.querySelectorAll("[data-action]").forEach(b => b.onclick = () => {
+    const a = b.dataset.action;
+    if (a === "cancel") { closeModal(conf); return; }
+    if (a === "confirm") {
+      if (action === "add") {
+        addToCart(part.id, variant, 1);
+        showToast(`${part.name} (${variant.brand} ${variant.model} ${variant.year}) added to cart`);
         closeModal(conf);
-      } else if (a === "confirm") {
-        if (action === "add") {
-          addToCart(part.id, variant, 1);
-          showToast(`${part.name} (${variant.brand} ${variant.model} ${variant.year}) added to cart`);
-          closeModal(conf);
-          closeModal(detailsModal);
-        } else if (action === "quick-order") {
-          // open whatsapp with prebuilt message
-          const message = buildWhatsAppMessageForQuickOrder(part, variant, 1);
-          openWhatsApp(message);
-          closeModal(conf);
-          closeModal(detailsModal);
-        }
+        closeModal(detailsModal);
+      } else if (action === "quick-order") {
+        const msg = buildWhatsAppMessageForQuickOrder(part, variant, 1);
+        openWhatsApp(msg);
+        closeModal(conf);
+        closeModal(detailsModal);
       }
-    };
+    }
   });
   openModal(conf);
 }
 
-// ---------- Cart Implementation ----------
-
-function loadCartFromSession() {
-  try {
-    const raw = sessionStorage.getItem(STORE_SESSION_CART_KEY);
-    if (!raw) return { items: [] };
-    return JSON.parse(raw);
-  } catch (err) {
-    return { items: [] };
-  }
-}
-function persistCartToSession() {
-  try {
-    sessionStorage.setItem(STORE_SESSION_CART_KEY, JSON.stringify(state.cart));
-  } catch (err) {
-    console.warn("Cannot persist cart:", err);
-  }
-}
-
-function addToCart(partId, variant, qty = 1) {
-  // if same part-version exists, increase qty
-  const existing = state.cart.items.find(it => it.partId === partId && it.brand === variant.brand && it.model === variant.model && String(it.year) === String(variant.year));
-  if (existing) {
-    existing.qty = Number(existing.qty) + Number(qty);
-  } else {
+/* =========================
+   Cart functions (same semantics as before)
+   ========================= */
+function addToCart(partId, variant, qty=1) {
+  const existing = state.cart.items.find(it => it.partId === Number(partId) && it.brand === variant.brand && it.model === variant.model && String(it.year) === String(variant.year));
+  if (existing) existing.qty = Number(existing.qty) + Number(qty);
+  else {
+    const p = state.parts.find(x => x.id === Number(partId));
     state.cart.items.push({
       partId: Number(partId),
+      name: p.name,
+      image: p.image,
       brand: variant.brand,
       model: variant.model,
       year: String(variant.year),
       price: Number(variant.price),
-      qty: Number(qty),
-      name: findPartById(partId).name,
-      image: findPartById(partId).image
+      qty: Number(qty)
     });
   }
-  persistCartToSession();
+  persistCart();
   updateCartUI();
 }
 
 function updateCartUI() {
-  // update cart count on page
-  const totalItems = state.cart.items.reduce((s, it) => s + Number(it.qty), 0);
-  document.querySelectorAll(".cart-count").forEach(el => el.textContent = ` (${totalItems})`);
-  document.querySelectorAll(".mobile-cart-btn .cart-count").forEach(el => {
-    el.textContent = ` (${totalItems})`;
-  });
+  const total = state.cart.items.reduce((s,it) => s + Number(it.qty), 0);
+  document.querySelectorAll(".cart-count").forEach(el => el.textContent = ` (${total})`);
 }
 
+/* Cart modal open (keeps your previously defined layout) */
 function openCartModal() {
-  // create cart modal if not exists
   if (!cartModal) {
     cartModal = document.createElement("div");
     cartModal.id = "cart-modal";
@@ -952,32 +924,25 @@ function openCartModal() {
       </div>
     `;
     document.body.appendChild(cartModal);
-
-    // close handler
     cartModal.querySelector(".modal-close").addEventListener("click", () => closeModal(cartModal));
     cartModal.querySelector("#cart-continue").addEventListener("click", () => closeModal(cartModal));
     cartModal.querySelector("#cart-place-order").addEventListener("click", () => {
-      // build whatsapp message and open
-      const message = buildWhatsAppMessageForCart();
-      openWhatsApp(message);
+      const msg = buildWhatsAppMessageForCart();
+      openWhatsApp(msg);
       closeModal(cartModal);
     });
   }
-
   renderCartItems();
   openModal(cartModal);
 }
-
 function renderCartItems() {
   if (!cartModal) return;
   const container = cartModal.querySelector("#cart-items-container");
+  const summary = cartModal.querySelector("#cart-summary");
   container.innerHTML = "";
   if (!state.cart.items.length) {
-    const n = document.createElement("div");
-    n.style.padding = "18px";
-    n.textContent = "Your cart is empty.";
-    container.appendChild(n);
-    cartModal.querySelector("#cart-summary").innerHTML = `<div>No items.</div>`;
+    container.innerHTML = `<div style="padding:18px">Your cart is empty.</div>`;
+    summary.innerHTML = `<div>No items.</div>`;
     return;
   }
   state.cart.items.forEach((it, idx) => {
@@ -991,7 +956,7 @@ function renderCartItems() {
     row.style.borderRadius = "8px";
     row.style.marginBottom = "8px";
     row.innerHTML = `
-      <img src="${escapeHtml(it.image)}" alt="${escapeHtml(it.name)}" style="width:64px;height:44px;object-fit:cover;border-radius:6px"/>
+      <img src="${escapeHtml(it.image)}" style="width:64px;height:44px;object-fit:cover;border-radius:6px"/>
       <div style="flex:1">
         <div style="font-weight:700">${escapeHtml(it.name)}</div>
         <div style="color:var(--muted);font-size:0.95rem">${escapeHtml(it.brand)} ${escapeHtml(it.model)} — ${escapeHtml(it.year)}</div>
@@ -999,56 +964,37 @@ function renderCartItems() {
       <div style="text-align:right">
         <div style="font-weight:800">${formatCurrency(it.price)}</div>
         <div style="display:flex;align-items:center;gap:8px;margin-top:6px;justify-content:flex-end">
-          <button class="qty-decrease" data-idx="${idx}" aria-label="Decrease">−</button>
+          <button class="qty-decrease" data-idx="${idx}">−</button>
           <div style="min-width:28px;text-align:center">${it.qty}</div>
-          <button class="qty-increase" data-idx="${idx}" aria-label="Increase">+</button>
+          <button class="qty-increase" data-idx="${idx}">+</button>
         </div>
       </div>
     `;
     container.appendChild(row);
   });
-
-  // attach quantity handlers
-  container.querySelectorAll(".qty-decrease").forEach(b => {
-    b.addEventListener("click", () => {
-      const idx = Number(b.dataset.idx);
-      if (state.cart.items[idx]) {
-        if (state.cart.items[idx].qty > 1) state.cart.items[idx].qty--;
-        else {
-          // remove
-          state.cart.items.splice(idx, 1);
-        }
-        persistCartToSession();
-        renderCartItems();
-        updateCartUI();
-      }
-    });
-  });
-  container.querySelectorAll(".qty-increase").forEach(b => {
-    b.addEventListener("click", () => {
-      const idx = Number(b.dataset.idx);
-      if (state.cart.items[idx]) {
-        state.cart.items[idx].qty++;
-        persistCartToSession();
-        renderCartItems();
-        updateCartUI();
-      }
-    });
-  });
-
-  // summary
-  const total = state.cart.items.reduce((s, it) => s + (it.qty * it.price), 0);
-  const count = state.cart.items.reduce((s, it) => s + it.qty, 0);
-  cartModal.querySelector("#cart-summary").innerHTML = `
+  container.querySelectorAll(".qty-decrease").forEach(b => b.addEventListener("click", () => {
+    const i = Number(b.dataset.idx);
+    if (state.cart.items[i]) {
+      if (state.cart.items[i].qty > 1) state.cart.items[i].qty--;
+      else state.cart.items.splice(i,1);
+      persistCart(); renderCartItems(); updateCartUI();
+    }
+  }));
+  container.querySelectorAll(".qty-increase").forEach(b => b.addEventListener("click", () => {
+    const i = Number(b.dataset.idx);
+    state.cart.items[i].qty++; persistCart(); renderCartItems(); updateCartUI();
+  }));
+  const total = state.cart.items.reduce((s,it) => s + it.qty * it.price, 0);
+  const count = state.cart.items.reduce((s,it) => s + it.qty, 0);
+  summary.innerHTML = `
     <div style="display:flex;justify-content:space-between"><span>Items</span><strong>${count}</strong></div>
     <div style="display:flex;justify-content:space-between;margin-top:8px"><span>Total</span><strong>${formatCurrency(total)}</strong></div>
   `;
 }
 
-// ---------- WhatsApp Message Builders ----------
-
-function buildWhatsAppMessageForQuickOrder(part, variant, qty = 1) {
-  const lines = [
+/* WhatsApp message builders */
+function buildWhatsAppMessageForQuickOrder(part, variant, qty=1) {
+  return [
     `Hello, I want to place a quick order on Manny Autos.`,
     `Part: ${part.name}`,
     `Variant: ${variant.brand} ${variant.model} — ${variant.year}`,
@@ -1056,68 +1002,122 @@ function buildWhatsAppMessageForQuickOrder(part, variant, qty = 1) {
     `Price: ${formatCurrency(variant.price)}`,
     ``,
     `Please confirm availability and delivery options.`
-  ];
-  return lines.join("\n");
+  ].join("\n");
 }
-
 function buildWhatsAppMessageForCart() {
   const lines = ["Hello, I'm ordering the following parts from Manny Autos:"];
   state.cart.items.forEach(it => {
     lines.push(`• ${it.name} — ${it.brand} ${it.model} ${it.year} — ${it.qty} × ${formatCurrency(it.price)} = ${formatCurrency(it.qty * it.price)}`);
   });
-  const total = state.cart.items.reduce((s, it) => s + it.qty * it.price, 0);
-  lines.push("");
-  lines.push(`Total: ${formatCurrency(total)}`);
-  lines.push("");
-  lines.push("Please confirm availability and delivery options.");
+  const total = state.cart.items.reduce((s,it) => s + it.qty * it.price, 0);
+  lines.push("", `Total: ${formatCurrency(total)}`, "", "Please confirm availability and delivery options.");
   return lines.join("\n");
 }
-
 function openWhatsApp(message) {
   const encoded = encodeURIComponent(message);
-  const url = BUSSINESS_WHATSAPP ? `https://wa.me/${BUSSINESS_WHATSAPP.replace(/\D/g,"")}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
-  window.open(url, "_blank");
+  const wa = BUSSINESS_WHATSAPP ? `https://wa.me/${BUSSINESS_WHATSAPP.replace(/\D/g,"")}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
+  window.open(wa, "_blank");
 }
 
-// ---------- Toast messages ----------
-
-function showToast(msg, ms = 2400) {
-  let toast = document.getElementById("manny-toast");
-  if (!toast) {
-    toast = document.createElement("div");
-    toast.id = "manny-toast";
-    toast.style.position = "fixed";
-    toast.style.top = "18px";
-    toast.style.left = "50%";
-    toast.style.transform = "translateX(-50%)";
-    toast.style.background = "rgba(11,58,111,0.95)";
-    toast.style.color = "#fff";
-    toast.style.padding = "8px 14px";
-    toast.style.borderRadius = "8px";
-    toast.style.zIndex = 4000;
-    toast.style.boxShadow = "0 8px 30px rgba(11,58,111,0.2)";
-    document.body.appendChild(toast);
+/* Toast */
+let toastTimer = null;
+function showToast(msg, ms=2200) {
+  let t = document.getElementById("manny-toast");
+  if (!t) {
+    t = document.createElement("div");
+    t.id = "manny-toast";
+    t.style.position = "fixed";
+    t.style.top = "18px";
+    t.style.left = "50%";
+    t.style.transform = "translateX(-50%)";
+    t.style.background = "rgba(11,58,111,0.95)";
+    t.style.color = "#fff";
+    t.style.padding = "8px 14px";
+    t.style.borderRadius = "8px";
+    t.style.zIndex = 4000;
+    document.body.appendChild(t);
   }
-  toast.textContent = msg;
-  toast.style.opacity = "1";
+  t.textContent = msg;
+  t.style.opacity = "1";
   if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    toast.style.opacity = "0";
-    // small fade out
-  }, ms);
+  toastTimer = setTimeout(()=> t.style.opacity = "0", ms);
 }
 
-// ---------- Utilities ----------
+/* =========================
+   Global handlers & init
+   ========================= */
+function attachGlobalHandlers() {
+  // enable strip-viewall buttons
+  attachStripViewAllHandlers();
 
-function renderPartsMatchingFiltersToPage() {
-  // re-populate all strips
-  renderStrips();
+  // top filter button dropdown
+  mountFilterDropdown();
+
+  // populate top filter buttons initially
+  buildStripsMapping();
+  populateTopFilterButtons();
+  mountAppliedFiltersUI();
+
+  // search input
+  if (searchInput) searchInput.addEventListener("input", debounce(() => { renderAllStrips(); }, 250));
+
+  // hamburger toggle
+  if (hamburgerBtn && mobileSidebar) {
+    hamburgerBtn.addEventListener("click", () => {
+      mobileSidebar.classList.toggle("open");
+      mobileSidebar.setAttribute("aria-hidden", mobileSidebar.classList.contains("open") ? "false" : "true");
+    });
+    const mobileClose = mobileSidebar.querySelector(".mobile-close");
+    if (mobileClose) mobileClose.addEventListener("click", () => {
+      mobileSidebar.classList.remove("open"); mobileSidebar.setAttribute("aria-hidden","true");
+    });
+  }
+
+  // cart buttons
+  mobileCartBtns.forEach(b => b.addEventListener("click", () => {
+    openCartModal();
+    if (mobileSidebar) { mobileSidebar.classList.remove("open"); mobileSidebar.setAttribute("aria-hidden","true"); }
+  }));
+
+  // details modal close (delegated)
+  document.addEventListener("click", (e) => {
+    if (e.target.matches(".modal-close")) {
+      const modal = e.target.closest(".modal");
+      if (modal) closeModal(modal);
+    }
+  });
+
+  // keyboard escape to close modals
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { document.querySelectorAll(".modal.show").forEach(m => closeModal(m)); }});
 }
 
-// ------------------ Expose minimal global for debugging ------------------
+/* small helpers */
+function openModal(el){ if(!el) return; el.classList.add("show"); document.body.classList.add("modal-open"); }
+function closeModal(el){ if(!el) return; el.classList.remove("show"); if (!document.querySelector(".modal.show")) document.body.classList.remove("modal-open"); }
+function debounce(fn, ms=200){ let t=null; return (...a)=>{ if(t) clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
+
+/* =========================
+   Init on DOMContentLoaded
+   ========================= */
+document.addEventListener("DOMContentLoaded", () => {
+  try {
+    // Build strips and render UI
+    buildStripsMapping();
+    ensureSectionsExist();
+    populateTopFilterButtons();
+    mountFilterDropdown();
+    attachGlobalHandlers();
+    renderAllStrips();
+    updateCartUI();
+  } catch (err) {
+    console.error("Init error", err);
+  }
+});
+
+/* expose for debugging */
 window.mannyStore = {
   state,
-  renderStrips,
+  renderAllStrips,
   openCartModal,
   addToCart,
   storeData
