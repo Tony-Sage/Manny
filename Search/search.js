@@ -562,44 +562,44 @@ function openDetailsModalForPart(partId) {
 
 
   // Helper: convert camelCase or snake_case to Title Case
-function formatKey(key) {
-  return key
-    // convert camelCase to space-separated
-    .replace(/([a-z])([A-Z])/g, "$1 $2")
-    // replace underscores with space
-    .replace(/_/g, " ")
-    // capitalize first letter of each word
-    .replace(/\b\w/g, char => char.toUpperCase());
-}
-
-// Render General Info
-const moreGeneral = body.querySelector(".more-general");
-const generalInfo = part.general; // the object you provided
-moreGeneral.innerHTML = ""; // clear previous content
-
-if (generalInfo && typeof generalInfo === "object") {
-  Object.keys(generalInfo).forEach((key) => {
-    const value = generalInfo[key];
-    if (value !== undefined && value !== null && String(value).trim() !== "") {
-      const div = document.createElement("div");
-
-      if (Array.isArray(value)) {
-        div.innerHTML = `<strong>${escapeHtml(formatKey(key))}:</strong> ${value.map(v => escapeHtml(String(v))).join(", ")}`;
-      } else if (typeof value === "object") {
-        const items = Object.keys(value)
-          .map(subKey => `${escapeHtml(formatKey(subKey))}: ${escapeHtml(String(value[subKey]))}`)
-          .join(" · ");
-        div.innerHTML = `<strong>${escapeHtml(formatKey(key))}:</strong> ${items}`;
-      } else {
-        div.innerHTML = `<strong>${escapeHtml(formatKey(key))}:</strong> ${escapeHtml(String(value))}`;
+  function formatKey(key) {
+    return key
+      // convert camelCase to space-separated
+      .replace(/([a-z])([A-Z])/g, "$1 $2")
+      // replace underscores with space
+      .replace(/_/g, " ")
+      // capitalize first letter of each word
+      .replace(/\b\w/g, char => char.toUpperCase());
+  }
+ 
+  // Render General Info
+  const moreGeneral = body.querySelector(".more-general");
+  const generalInfo = part.general; // the object you provided
+  moreGeneral.innerHTML = ""; // clear previous content
+ 
+  if (generalInfo && typeof generalInfo === "object") {
+    Object.keys(generalInfo).forEach((key) => {
+      const value = generalInfo[key];
+      if (value !== undefined && value !== null && String(value).trim() !== "") {
+        const div = document.createElement("div");
+  
+        if (Array.isArray(value)) {
+          div.innerHTML = `<strong>${escapeHtml(formatKey(key))}:</strong> ${value.map(v => escapeHtml(String(v))).join(", ")}`;
+        } else if (typeof value === "object") {
+          const items = Object.keys(value)
+            .map(subKey => `${escapeHtml(formatKey(subKey))}: ${escapeHtml(String(value[subKey]))}`)
+            .join(" · ");
+          div.innerHTML = `<strong>${escapeHtml(formatKey(key))}:</strong> ${items}`;
+        } else {
+          div.innerHTML = `<strong>${escapeHtml(formatKey(key))}:</strong> ${escapeHtml(String(value))}`;
+        }
+  
+        const br = document.createElement("br")
+        moreGeneral.appendChild(div);
+        moreGeneral.appendChild(br)
       }
-
-      const br = document.createElement("br")
-      moreGeneral.appendChild(div);
-      moreGeneral.appendChild(br)
-    }
-  });
-}
+    });
+  }
 
 
   // populate specs list (assume part.specs as object or array)
@@ -607,7 +607,7 @@ if (generalInfo && typeof generalInfo === "object") {
   if (Array.isArray(part.specs)) {
     specsList.innerHTML = `<ul>${part.specs.map(s => `<li>${escapeHtml(String(s))}</li>`).join("")}</ul>`;
   } else if (part.specs && typeof part.specs === "object") {
-    specsList.innerHTML = `<dl style="display:grid;grid-template-columns: 1fr 1fr;gap:8px">${Object.keys(part.specs).map(k => `<dt style="font-weight:700">${escapeHtml(k)}</dt><dd>${escapeHtml(String(part.specs[k]))}</dd>`).join("")}</dl>`;
+    specsList.innerHTML = `<dl style="display:grid;grid-template-columns: 1fr 1fr;gap:8px">${Object.keys(part.specs).map(k => `<dt style="font-weight:700">${escapeHtml(formatKey(k))}</dt><dd>${escapeHtml(String(part.specs[k]))}</dd>`).join("")}</dl>`;
   } else {
     specsList.innerHTML = `<div style="color:#6b7a89">No specs available.</div>`;
   }
