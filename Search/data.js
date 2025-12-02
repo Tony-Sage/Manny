@@ -154,7 +154,7 @@ export const autoParts = [
   {
     id: 5,
     name: "Hub Assembly",
-    image: "../images/hubs.jpg",
+    image: "../images/hub.jpg",
     description: "Complete hub assembly with flange for secure wheel mounting and reliable operation.",
     category: "Chassis Accessories",
     oem: ["42200-0E030", "43430-0E030"],

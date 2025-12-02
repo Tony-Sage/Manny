@@ -484,10 +484,13 @@ function openDetailsModalForPart(partId) {
               <!-- image slot populated below -->
             </div>
             <div class="general-info" style="display:flex;flex-direction:column;gap:8px;">
-              <div class="gi-desc" style="color:#0B2A44">${escapeHtml(part.description || "")}</div>
-              <div><strong>Availability:</strong> <span class="${availabilityClass(part.availability)}">${escapeHtml(part.availability || "")}</span></div>
-              <div><strong>Price:</strong> ${formatNumber(part.price || 0)} FCFA</div>
-              <div class="more-general"></div>
+              <div class="gi-desc" style="color:#0B2A44">${escapeHtml(part.description || "")}</div><br>
+              
+              <div><strong>Availability:</strong> <span class="${availabilityClass(part.availability)}">${ escapeHtml(part.availability || "")}</span></div><br>
+              
+              <div><strong>Price:</strong> ${formatNumber(part.price || 0)} FCFA</div><br>
+              
+              <div class="more-general"></div><br>
             </div>
           </div>
         </div>
@@ -512,7 +515,7 @@ function openDetailsModalForPart(partId) {
     imgWrap.style.justifyContent = "center";
     imgWrap.style.height = "100%";
     imgWrap.innerHTML = `
-      <img src="${escapeHtml(images[imgIndexState.i] || 'images/placeholder.png')}" style="width:100%;height:360px;object-fit:cover;display:block" onerror="this.onerror=null;this.src='images/placeholder.png'"/>
+      <img src="${escapeHtml(images[imgIndexState.i] || 'images/placeholder.png')}" style="width:100%;height:360px;object-fit:cover;display:block" onerror="this.onerror=null;this.src='images/placeholder.png'"/><br>
     `;
     // arrows if multiple images
     if (images.length > 1) {
@@ -591,7 +594,9 @@ if (generalInfo && typeof generalInfo === "object") {
         div.innerHTML = `<strong>${escapeHtml(formatKey(key))}:</strong> ${escapeHtml(String(value))}`;
       }
 
+      const br = document.createElement("br")
       moreGeneral.appendChild(div);
+      moreGeneral.appendChild(br)
     }
   });
 }
