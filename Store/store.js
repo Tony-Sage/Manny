@@ -66,7 +66,7 @@ let cartModal = null;
    Utilities
    ========================= */
 function escapeHtml(s="") { return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
-function formatCurrency(n){ return `₦${Number(n).toLocaleString()}`; }
+function formatCurrency(n){ return `${Number(n).toLocaleString()} FCFA`; }
 function unique(arr){ return Array.from(new Set(arr)); }
 
 /* =========================
