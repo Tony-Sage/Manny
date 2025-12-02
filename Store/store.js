@@ -1363,6 +1363,14 @@ document.addEventListener("DOMContentLoaded", () => {
     attachGlobalHandlers();
     renderAllStrips();
     updateCartUI();
+
+    const toOpen = sessionStorage.getItem('manny_store_open_part');
+    if (toOpen) {
+      // open modal for that id
+      openDetailsModalForPart(toOpen); // adapt to your store.js function name
+      sessionStorage.removeItem('manny_store_open_part');
+}
+
   } catch (err) {
     console.error("Init error", err);
   }
