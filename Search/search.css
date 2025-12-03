@@ -1,5 +1,4 @@
 /* search.css
-   Uses the same palette and visual language as your homepage:
    - deep navy: #0B3B6F
    - cyan-teal:  #2EC4D6
    - soft gray:  #F5F7FA
@@ -26,7 +25,7 @@ body {
   line-height: 1.45;
 }
 
-/* ---------- Header (reuse homepage styling) ---------- */
+/* ---------- Header ---------- */
 .main-header {
   position: fixed;
   top: 0;

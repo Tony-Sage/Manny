@@ -1,4 +1,4 @@
-// storeData — 20 items (categories constrained to the five primary categories)
+// storeData 
 export const storeData = [
   // {
   //   id: 1,

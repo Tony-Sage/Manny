@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- Header (matches homepage structure) -->
+  <!-- Header -->
   <header class="main-header">
     <div class="header-inner">
       <div class="logo">
@@ -87,8 +87,7 @@
       <div class="selector-block">
         <div class="selector-prompt">Filter</div>
 
-        <!-- Pill (add class .pos-0/.pos-1/.pos-2 to change slider position via JS later).
-             Default is .pos-0 (Brand). -->
+        <!-- Pill -->
         <div class="pill pos-0" role="tablist" aria-label="Brand Model Year selector">
           <button class="pill-option" data-index="0" type="button">Brand</button>
           <button class="pill-option" data-index="1" type="button">Model</button>
@@ -96,7 +95,6 @@
           <div class="pill-slider" aria-hidden="true"></div>
         </div>
 
-        <!-- the dropdown below the pill changes depending on the pill position (for design only) -->
         <div class="selector-dropdown">
          <label for="filter-dropdown" id="filter-dropdown">Select Brand</label>
           <select id="filter-dropdown">
@@ -118,7 +116,7 @@
 
       <!--
       ===========================
-      By Category (commented)
+      By Category
       ===========================
       -->
       <section class="categories">
@@ -139,12 +137,10 @@
   </footer>
 
   <script>
-    // tiny unobtrusive script to fill the footer year and set ARIA (harmless, optional)
+    // script to fill the footer year
     document.getElementById('yearFooter').textContent = new Date().getFullYear();
   </script>
   
   <script src="search.js" type="module"></script>
-  <!-- <script src="search2.js" type="module"></script>
-  <script src="search3.js" type="module"></script> -->
 </body>
 </html>

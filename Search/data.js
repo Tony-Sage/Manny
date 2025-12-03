@@ -40,7 +40,6 @@ export const autoParts = [
   //   }
   // },
 
-  /* 2 */
   {
     id: 2,
     name: "High-Flow Oil Filter",
@@ -78,7 +77,6 @@ export const autoParts = [
     }
   },
 
-  /* 3 */
   {
     id: 3,
     name: "Halogen Headlight Bulb (H4)",
@@ -116,7 +114,6 @@ export const autoParts = [
     }
   },
 
-  /* 4 */
   {
     id: 4,
     name: "Panel Air Filter",
@@ -154,7 +151,6 @@ export const autoParts = [
     }
   },
 
-  /* 5 */
   {
     id: 5,
     name: "Reinforced Radiator Hose",
@@ -192,7 +188,6 @@ export const autoParts = [
     }
   },
 
-  /* 6 */
   {
     id: 6,
     name: "High-Durability Timing Belt",
@@ -230,7 +225,6 @@ export const autoParts = [
     }
   },
 
-  /* 7 */
   {
     id: 7,
     name: "Spark Plug (Platinum)",
@@ -268,7 +262,6 @@ export const autoParts = [
     }
   },
 
-  /* 8 */
   {
     id: 8,
     name: "Headlamp Assembly (LH)",
@@ -305,8 +298,7 @@ export const autoParts = [
       finish: "Primered/paint-ready or finished lens"
     }
   },
-
-  /* 9 */
+  
   {
     id: 9,
     name: "Front Bumper Cover",
@@ -344,7 +336,6 @@ export const autoParts = [
     }
   },
 
-  /* 10 */
   {
     id: 10,
     name: "LED Interior Dome Light",

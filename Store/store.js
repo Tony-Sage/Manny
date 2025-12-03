@@ -1,9 +1,4 @@
 // store.js
-// Manny Autos — store page behavior (updated)
-// - Adds "Others" filter mode (tags)
-// - Splits page into three sections: Top (Featured), Middle (Categories), Bottom (Others)
-// - Parts can appear in multiple tracks (uses `tracks` array or inferred placement)
-// - Product cards open details modal by clicking the card (no separate buttons)
 
 import {storeData} from "./data.js"
 
@@ -20,7 +15,7 @@ const state = {
   currentExpandedSection: null,
   parts: storeData.slice(),
   filters: {
-    mode: "category", // 'category' | 'brand' | 'model' | 'others'
+    mode: "category",
     selected: {
       brand: new Set(),
       model: new Set(),
@@ -82,12 +77,7 @@ function persistCart(){ try{ sessionStorage.setItem(STORE_SESSION_CART_KEY, JSON
 
 /* =========================
    Build strips mapping (featured, categories, othersByTag)
-   - A part can be in multiple tracks.
-   - If part.tracks exists, respect it (e.g. ["featured","brakes","custom-tag"])
-   - Otherwise: include it in:
-       - featured if id appears in a short curated featured list (we choose first N)
-       - category track: its category
-       - tag tracks: every tag in part.tags
+   - A part can be in multiple tracks
    ========================= */
 function buildStripsMapping() {
   // reset
