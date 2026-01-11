@@ -253,10 +253,11 @@ function createResultCard(part) {
   card.dataset.partId = String(part.id);
 
   // image handling: allow string or part.image
-  const imgSrc = Array.isArray(part.image) ? (part.image[0] || "") : (part.image || "");
+  const imgSrc = part.image_url
+  const imgAlt = part.image_label
   card.innerHTML = `
     <div class="card-media">
-      <img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(part.name)} image" onerror="this.onerror=null;this.src='images/placeholder.png'">
+      <img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(imgAlt)} image" onerror="this.onerror=null;this.src='images/placeholder.png'">
     </div>
     <div class="card-body">
       <h3 class="card-title">${escapeHtml(part.name)}</h3>
@@ -278,7 +279,6 @@ function createResultCard(part) {
 
 function availabilityClass(availability) {
  const availabilityClass = availability.toLowerCase().replace(/\s+/g, "-");
- console.log(availabilityClass)
  return availabilityClass
 }
 
