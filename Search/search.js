@@ -7,7 +7,10 @@
 // - Place Quick Order -> brand/model/year selection + WhatsApp quick-order
 // - pagination, instruction modal, categories, and placeholder typing preserved
 
-import { autoParts, carData } from "./data.js"; // ensure data.js exports both
+import { fetchCarData, fetchCategoryData } from "./data.js"; // ensure data.js exports both
+
+const carData = await fetchCarData();
+const autoParts = await fetchCategoryData();
 
 /* =========================
    Config & constants
@@ -131,7 +134,6 @@ function closeModal(el){ el.classList.add("hidden"); const anyOpen = document.qu
 const PLACEHOLDER_WORDS = [
   "name (eg: brake pads)",
   "OEM number (eg: 27121-4A000)",
-  "use (eg: used in the wheels)",
   "keywords (eg: wheel bearing)"
 ];
 let placeholderTimer = null;
@@ -166,22 +168,39 @@ function stopPlaceholderTypewriter(inputEl){
 /* =========================
    Search algorithm (from search2.js)
    ========================= */
-function searchParts(query) {
+async function searchParts(query) {
   const q = normalize(query);
   if (!q) return [];
-  const results = autoParts
+  
+   let queryParams = [`${query}`];
+
+  if (selectedBrand) queryParams.push(`brand=${selectedBrand}`);
+  if (selectedModel) queryParams.push(`model=${selectedModel}`);
+  if (selectedYear) queryParams.push(`year=${selectedYear}`);
+  
+  const queryString = queryParams.join("&");
+  console.log(queryString)
+  
+  let parts;
+  
+  if (queryString) {
+    const res = await fetch(`http://localhost:4000/search?${queryString}`);
+    parts = await res.json();
+  }
+  
+  const results = parts
     .map((part) => {
       let score = 0;
       const nName = normalize(part.name || "");
       const nCategory = normalize(part.category || "");
       const nDesc = normalize(part.description || "");
       const nOem = (part.oem || []).map(normalize);
-      const nKeywords = (part.keywords || []).map(normalize);
+      const nKeywords = (part.tags || []).map(normalize);
 
       if (nName.includes(q)) score += 40;
       if (nCategory.includes(q)) score += 20;
       if (nDesc.includes(q)) score += 10;
-      if (nOem.some(o => o.includes(q))) score += 30;
+      if (nOem.some(o => o.includes(q))) score += 50;
       if (nKeywords.some(k => k.includes(q))) score += 25;
 
       const qTokens = q.split(/\s+/);
@@ -194,7 +213,7 @@ function searchParts(query) {
     .filter(item => item.score > 0)
     .sort((a,b) => b.score - a.score)
     .map(item => item.part);
-
+  
   return results;
 }
 
@@ -202,6 +221,33 @@ function searchParts(query) {
    Result card creation (no buttons, no compat)
    ========================= */
 function createResultCard(part) {
+ 
+ function checkAvailability(part) {
+  let inStock = 0;
+  let lowStock = 0;
+  let outOfStock = 0;
+
+  for (const variant of part.compatibilities) {
+    const availability = variant.availability;
+
+    if (availability === "In Stock") {
+      inStock += 1;
+    } else if (availability === "Low Stock") {
+      lowStock += 1;
+    } else {
+      outOfStock += 1;
+    }
+  }
+
+  if (inStock > lowStock && inStock > outOfStock) {
+    return "In Stock";
+  } else if (lowStock > inStock && lowStock > outOfStock) {
+    return "Low Stock";
+  } else {
+    return "Out Of Stock";
+  }
+ }
+ 
   const card = document.createElement("article");
   card.className = "result-card";
   card.dataset.partId = String(part.id);
@@ -216,7 +262,7 @@ function createResultCard(part) {
       <h3 class="card-title">${escapeHtml(part.name)}</h3>
       <p class="card-desc">${escapeHtml(part.description || "")}</p>
       <div class="card-meta">
-        <span class="availability ${availabilityClass(part.availability)}">${escapeHtml(part.availability || "")}</span>
+        <span class="availability ${availabilityClass(checkAvailability(part))}">${checkAvailability(part)}</span>
         <span class="price">${formatNumber(part.price || 0)} FCFA</span>
       </div>
     </div>
@@ -230,12 +276,10 @@ function createResultCard(part) {
   return card;
 }
 
-function availabilityClass(a = "") {
-  const x = normalize(a || "");
-  if (x.includes("in stock") || x.includes("in-stock")) return "avail-in-stock";
-  if (x.includes("low")) return "avail-low";
-  if (x.includes("out") || x.includes("unavailable")) return "avail-out";
-  return "avail-unknown";
+function availabilityClass(availability) {
+ const availabilityClass = availability.toLowerCase().replace(/\s+/g, "-");
+ console.log(availabilityClass)
+ return availabilityClass
 }
 
 /* =========================
@@ -357,33 +401,26 @@ function renderPaginationControls() {
 function scrollToResultsTop() { if (resultsSection) resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 
 /* =========================
-   Category mode (from search3.js)
+   Category mode
    ========================= */
-function getCategoriesMap() {
-  const map = new Map();
-  for (const p of autoParts) {
-    const cat = p.category || "Uncategorized";
-    if (!map.has(cat)) map.set(cat, []);
-    map.get(cat).push(p);
-  }
-  return map;
-}
+
 function renderCategoryCards(){
   if (!categoriesGrid) return;
   categoriesGrid.innerHTML = "";
-  const categories = getCategoriesMap();
-  for (const [cat, parts] of categories.entries()) {
+  const categories = autoParts;
+  for (const category of autoParts) {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "category-card category-card-btn";
-    btn.dataset.category = cat;
+    btn.dataset.category = category.category;
     btn.innerHTML = `
-      <div class="cat-title" style="font-weight:700;color:#0B3B6F;">${escapeHtml(cat)}</div>
-      <div class="cat-count" style="font-size:13px;color:#6b7a89;">${parts.length} items</div>
+      <div class="cat-title" style="font-weight:700;color:#0B3B6F;">${escapeHtml(category.category)}</div>
+      <div class="cat-count" style="font-size:13px;color:#6b7a89;">${category.numberOfParts} items</div>
     `;
     categoriesGrid.appendChild(btn);
   }
 }
+
 function showIdentifiersMode() {
   if (identifiersSection) identifiersSection.style.display = "";
   if (searchRow) searchRow.style.display = "";
@@ -400,12 +437,14 @@ function showCategoryMode() {
 
 /* categories click delegation */
 if (categoriesGrid) {
-  categoriesGrid.addEventListener("click", (e) => {
+  categoriesGrid.addEventListener("click", async (e) => {
     const btn = e.target.closest(".category-card-btn");
     if (!btn) return;
     const category = btn.dataset.category;
     if (!category) return;
-    const parts = autoParts.filter(p => normalize(p.category) === normalize(category));
+    const parts = await fetch(`http://localhost:4000/search?category=${category}`)
+    .then(res => res.json())
+    console.log(parts)
     renderPartsList(parts, category);
     if (categoriesSection) categoriesSection.style.display = "none";
     identifiersSection.style.display = "block"
@@ -752,11 +791,13 @@ body.querySelector(".quick-order")?.addEventListener("click", () => {
    Event wiring: search button, live search
    ========================= */
 if (searchButton) {
-  searchButton.addEventListener("click", (e) => {
+  searchButton.addEventListener("click", async (e) => {
     e.preventDefault();
     state.page = 1;
     const q = searchInput?.value ?? "";
-    const results = searchParts(q);
+    const results = await searchParts(q);
+    console.log("This runs")
+    console.log(`This is the result ${results}`)
     renderResults(results);
   });
 }
@@ -767,7 +808,7 @@ if (searchInput) {
   });
   searchInput.addEventListener("input", ()=> {
     if (debounceTimer) clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(()=> { state.page = 1; renderResults(searchParts(searchInput.value)); }, 450);
+    debounceTimer = setTimeout(async ()=> { state.page = 1; renderResults(await searchParts(searchInput.value)); }, 450);
   });
 }
 

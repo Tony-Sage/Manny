@@ -124,19 +124,19 @@
   text-transform: none;
 }
 
-.avail-in-stock {
+.in-stock {
   background: rgba(46,196,214,0.12);
   color: #0B3B6F;
   border: 1px solid rgba(46,196,214,0.18);
 }
 
-.avail-low {
+.low-stock {
   background: rgba(255,192,77,0.10);
   color: #b07000;
   border: 1px solid rgba(255,192,77,0.14);
 }
 
-.avail-out {
+.out-of-stock {
   background: rgba(220,80,80,0.08);
   color: #b00000;
   border: 1px solid rgba(220,80,80,0.12);
