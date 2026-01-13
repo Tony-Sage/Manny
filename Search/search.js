@@ -1,8 +1,4 @@
 // search-merged.js
-// Merged search.js + search2.js + search3.js
-// - unified search UI (Identifiers + Category)
-// - simplified result cards (no buttons, no compat text)
-// - large details modal with tabs (General Info | Specs)
 // - Go To Store -> sets sessionStorage key then navigates to store page
 // - Place Quick Order -> brand/model/year selection + WhatsApp quick-order
 // - pagination, instruction modal, categories, and placeholder typing preserved
@@ -15,7 +11,7 @@ const autoParts = await fetchCategoryData();
 /* =========================
    Config & constants
    ========================= */
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 5;
 const WHATSAPP_PHONE = "+237692521155";
 const INSTRUCTION_SHOWN_KEY = "manny_instruction_shown_session";
 const STORE_OPEN_KEY = "manny_store_open_part";
@@ -165,6 +161,23 @@ function stopPlaceholderTypewriter(inputEl){
   if (inputEl) inputEl.setAttribute('placeholder','');
 }
 
+
+async function getPartInfo(partId, brand, model, year) {
+  let queryParams = [];
+
+  if (brand) queryParams.push(`?brand=${brand}`);
+  if (model) queryParams.push(`model=${model}`);
+  if (year) queryParams.push(`year=${year}`);
+  
+  const queryParamString = queryParams.join("&");
+  
+  const res = await fetch(
+    `http://localhost:4000/search/${partId}/info${queryParamString}`
+  );
+  const info = await res.json();
+  return info;
+}
+
 /* =========================
    Search algorithm (from search2.js)
    ========================= */
@@ -172,7 +185,7 @@ async function searchParts(query) {
   const q = normalize(query);
   if (!q) return [];
   
-  let queryParams = [`${query}`];
+   let queryParams = [`${query}`];
 
   if (selectedBrand) queryParams.push(`brand=${selectedBrand}`);
   if (selectedModel) queryParams.push(`model=${selectedModel}`);
@@ -221,7 +234,7 @@ async function searchParts(query) {
    Result card creation (no buttons, no compat)
    ========================= */
 function createResultCard(part) {
- 
+
  function checkAvailability(part) {
   let inStock = 0;
   let lowStock = 0;
@@ -264,14 +277,20 @@ function createResultCard(part) {
       <p class="card-desc">${escapeHtml(part.description || "")}</p>
       <div class="card-meta">
         <span class="availability ${availabilityClass(checkAvailability(part))}">${checkAvailability(part)}</span>
-        <span class="price">${formatNumber(part.price || 0)} FCFA</span>
       </div>
     </div>
   `;
 
   // open details modal on entire card click
-  card.addEventListener("click", () => {
-    openDetailsModalForPart(part.id);
+  card.addEventListener("click", async () => {
+    //openDetailsModalForPart(part.id);
+
+    const brand = part.brand || ""; // adjust based on your data
+      const model = part.model || ""; // adjust based on your data
+      const year = part.year || "";   // adjust based on your data
+
+      const info = await getPartInfo(part.id, brand, model, year);
+      showPartInfoModal(info, imgSrc, imgAlt);
   });
 
   return card;
@@ -444,7 +463,6 @@ if (categoriesGrid) {
     if (!category) return;
     const parts = await fetch(`http://localhost:4000/search?category=${category}`)
     .then(res => res.json())
-    console.log(parts)
     renderPartsList(parts, category);
     if (categoriesSection) categoriesSection.style.display = "none";
     identifiersSection.style.display = "block"
@@ -495,296 +513,439 @@ function renderPartsList(parts = [], categoryName = "") {
 /* =========================
    Details modal & tabs + Quick Order
    ========================= */
-function openDetailsModalForPart(partId) {
-  const part = autoParts.find(p => String(p.id) === String(partId));
-  if (!part) return;
-  const panel = detailsModal.querySelector(".modal-panel");
-  const body = detailsModal.querySelector(".modal-body");
+// function openDetailsModalForPart(partId) {
+//   const part = autoParts.find(p => String(p.id) === String(partId));
+//   if (!part) return;
+//   const panel = detailsModal.querySelector(".modal-panel");
+//   const body = detailsModal.querySelector(".modal-body");
 
-  // make modal-panel visually large (nearly full screen)
-  panel.style.maxWidth = "min(1100px, 96vw)";
-  panel.style.width = "96vw";
-  panel.style.maxHeight = "94vh";
-  panel.style.padding = "14px";
+//   // make modal-panel visually large (nearly full screen)
+//   panel.style.maxWidth = "min(1100px, 96vw)";
+//   panel.style.width = "96vw";
+//   panel.style.maxHeight = "94vh";
+//   panel.style.padding = "14px";
 
-  // content: header with tabs, then container for tab contents, then action buttons
-  body.innerHTML = `
-    <div class="details-top" style="display:flex;gap:12px;align-items:flex-start;flex-direction:column;">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;flex-wrap:wrap">
-        <div style="display:flex;gap:12px;align-items:center">
-          <div style="font-weight:800;font-size:18px;color:#0B3B6F">${escapeHtml(part.name)}</div>
-          <div style="color:#6b7a89">${escapeHtml(part.category || "")}</div>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <button class="btn btn-secondary goto-store">Go To Store</button>
-          <button class="btn btn-primary quick-order">Place Quick Order</button>
-        </div>
+//   // content: header with tabs, then container for tab contents, then action buttons
+//   body.innerHTML = `
+//     <div class="details-top" style="display:flex;gap:12px;align-items:flex-start;flex-direction:column;">
+//       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;flex-wrap:wrap">
+//         <div style="display:flex;gap:12px;align-items:center">
+//           <div style="font-weight:800;font-size:18px;color:#0B3B6F">${escapeHtml(part.name)}</div>
+//           <div style="color:#6b7a89">${escapeHtml(part.category || "")}</div>
+//         </div>
+//         <div style="display:flex;gap:8px;align-items:center">
+//           <button class="btn btn-secondary goto-store">Go To Store</button>
+//           <button class="btn btn-primary quick-order">Place Quick Order</button>
+//         </div>
+//       </div>
+
+//       <div class="details-tabs" style="margin-top:12px;display:flex;gap:8px;">
+//         <button class="tab-btn active" data-tab="general">General Info</button>
+//         <button class="tab-btn" data-tab="specs">Specs</button>
+//       </div>
+
+//       <div class="tab-contents" style="width:100%;margin-top:12px;">
+//         <div class="tab-pane" data-tab="general" style="display:block">
+//           <div class="general-grid">
+//             <div class="image-panel" style="border-radius:8px;overflow:hidden;background:#f5f7fa;">
+//               <!-- image slot populated below -->
+//             </div>
+//             <div class="general-info" style="display:flex;flex-direction:column;gap:8px;">
+//               <div class="gi-desc" style="color:#0B2A44">${escapeHtml(part.description || "")}</div><br>
+              
+//               <div><strong>Availability:</strong> <span class="${availabilityClass(part.availability)}">${ escapeHtml(part.availability || "")}</span></div><br>
+              
+//               <div><strong>Price:</strong> ${formatNumber(part.price || 0)} FCFA</div><br>
+              
+//               <div class="more-general"></div><br>
+//             </div>
+//           </div>
+//         </div>
+
+//         <div class="tab-pane" data-tab="specs" style="display:none">
+//           <div class="specs-list" style="display:block"></div>
+//         </div>
+//       </div>
+//     </div>
+//   `;
+
+//   // populate image area (support string or array)
+//   const imagePanel = body.querySelector(".image-panel");
+//   const images = Array.isArray(part.image) ? part.image.slice() : (part.image ? [part.image] : []);
+//   const imgIndexState = { i: 0 };
+//   function renderImagePanel() {
+//     imagePanel.innerHTML = "";
+//     const imgWrap = document.createElement("div");
+//     imgWrap.style.position = "relative";
+//     imgWrap.style.display = "flex";
+//     imgWrap.style.alignItems = "center";
+//     imgWrap.style.justifyContent = "center";
+//     imgWrap.style.height = "100%";
+//     imgWrap.innerHTML = `
+//       <img src="${escapeHtml(images[imgIndexState.i] || 'images/placeholder.png')}" style="width:100%;height:360px;object-fit:cover;display:block" onerror="this.onerror=null;this.src='images/placeholder.png'"/><br>
+//     `;
+//     // arrows if multiple images
+//     if (images.length > 1) {
+//       const left = document.createElement("button");
+//       left.className = "img-arrow left";
+//       left.style.position = "absolute";
+//       left.style.left = "8px";
+//       left.style.top = "50%";
+//       left.style.transform = "translateY(-50%)";
+//       left.textContent = "◀";
+//       left.style.background = "rgba(0,0,0,0.12)";
+//       left.style.color = "#fff";
+//       left.style.border = "0";
+//       left.style.width = "36px";
+//       left.style.height = "36px";
+//       left.style.borderRadius = "50%";
+//       left.addEventListener("click", (ev) => {
+//         ev.stopPropagation();
+//         if (imgIndexState.i > 0) { imgIndexState.i--; renderImagePanel(); }
+//       });
+//       const right = document.createElement("button");
+//       right.className = "img-arrow right";
+//       right.style.position = "absolute";
+//       right.style.right = "8px";
+//       right.style.top = "50%";
+//       right.style.transform = "translateY(-50%)";
+//       right.textContent = "▶";
+//       right.style.background = "rgba(0,0,0,0.12)";
+//       right.style.color = "#fff";
+//       right.style.border = "0";
+//       right.style.width = "36px";
+//       right.style.height = "36px";
+//       right.style.borderRadius = "50%";
+//       right.addEventListener("click", (ev) => {
+//         ev.stopPropagation();
+//         if (imgIndexState.i < images.length - 1) { imgIndexState.i++; renderImagePanel(); }
+//       });
+//       imgWrap.appendChild(left);
+//       imgWrap.appendChild(right);
+//     }
+//     imagePanel.appendChild(imgWrap);
+//   }
+//   renderImagePanel();
+
+
+//   // Helper: convert camelCase or snake_case to Title Case
+//   function formatKey(key) {
+//     return key
+//       // convert camelCase to space-separated
+//       .replace(/([a-z])([A-Z])/g, "$1 $2")
+//       // replace underscores with space
+//       .replace(/_/g, " ")
+//       // capitalize first letter of each word
+//       .replace(/\b\w/g, char => char.toUpperCase());
+//   }
+ 
+//   // Render General Info
+//   const moreGeneral = body.querySelector(".more-general");
+//   const generalInfo = part.general; // the object you provided
+//   moreGeneral.innerHTML = ""; // clear previous content
+ 
+//   if (generalInfo && typeof generalInfo === "object") {
+//     Object.keys(generalInfo).forEach((key) => {
+//       const value = generalInfo[key];
+//       if (value !== undefined && value !== null && String(value).trim() !== "") {
+//         const div = document.createElement("div");
+  
+//         if (Array.isArray(value)) {
+//           div.innerHTML = `<strong>${escapeHtml(formatKey(key))}:</strong> ${value.map(v => escapeHtml(String(v))).join(", ")}`;
+//         } else if (typeof value === "object") {
+//           const items = Object.keys(value)
+//             .map(subKey => `${escapeHtml(formatKey(subKey))}: ${escapeHtml(String(value[subKey]))}`)
+//             .join(" · ");
+//           div.innerHTML = `<strong>${escapeHtml(formatKey(key))}:</strong> ${items}`;
+//         } else {
+//           div.innerHTML = `<strong>${escapeHtml(formatKey(key))}:</strong> ${escapeHtml(String(value))}`;
+//         }
+  
+//         const br = document.createElement("br")
+//         moreGeneral.appendChild(div);
+//         moreGeneral.appendChild(br)
+//       }
+//     });
+//   }
+
+
+//   // populate specs list (assume part.specs as object or array)
+//   const specsList = body.querySelector(".specs-list");
+//   if (Array.isArray(part.specs)) {
+//     specsList.innerHTML = `<ul>${part.specs.map(s => `<li>${escapeHtml(String(s))}</li>`).join("")}</ul>`;
+//   } else if (part.specs && typeof part.specs === "object") {
+//     specsList.innerHTML = `<dl style="display:grid;grid-template-columns: 1fr 1fr;gap:8px">${Object.keys(part.specs).map(k => `<dt style="font-weight:700">${escapeHtml(formatKey(k))}</dt><dd>${escapeHtml(String(part.specs[k]))}</dd>`).join("")}</dl>`;
+//   } else {
+//     specsList.innerHTML = `<div style="color:#6b7a89">No specs available.</div>`;
+//   }
+
+//   // tab switching
+//   body.querySelectorAll(".tab-btn").forEach(btn => {
+//     btn.addEventListener("click", () => {
+//       body.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+//       btn.classList.add("active");
+//       const tab = btn.dataset.tab;
+//       body.querySelectorAll(".tab-pane").forEach(p => p.style.display = (p.dataset.tab === tab ? "block" : "none"));
+//     });
+//   });
+
+//   // Go To Store
+//   body.querySelector(".goto-store")?.addEventListener("click", () => {
+//     try { sessionStorage.setItem(STORE_OPEN_KEY, String(part.id)); } catch (e) {}
+//     // navigate to store page (update relative path if needed)
+//     window.location.href = "../Store/store.html";
+//   });
+
+//   // Quick Order flow (select brand->model->year inside modal)
+//   // Quick Order flow (single panel, populates from variants or compatibilities)
+// body.querySelector(".quick-order")?.addEventListener("click", () => {
+//   // if panel already exists, focus/scroll to it instead of creating another
+//   const existing = body.querySelector(".quick-order-panel");
+//   if (existing) {
+//     existing.scrollIntoView({ behavior: "smooth", block: "center" });
+//     return;
+//   }
+
+//   const container = document.createElement("div");
+//   container.className = "quick-order-panel";
+//   container.style.marginTop = "12px";
+//   container.innerHTML = `
+//     <div style="display:grid;gap:10px">
+//       <div><strong>Quick Order</strong></div>
+//       <div style="display:flex;gap:8px;flex-wrap:wrap">
+//         <select class="qo-brand"><option value="">Select brand</option></select>
+//         <select class="qo-model"><option value="">Select model</option></select>
+//         <select class="qo-year" style="display:none"><option value="">Select year</option></select>
+//       </div>
+//       <div class="qo-warning" style="color:#b00000"></div>
+//       <div style="display:flex;gap:8px;justify-content:flex-end">
+//         <button class="btn-secondary qo-cancel">Cancel</button>
+//         <button class="btn btn-primary qo-send">Send Order</button>
+//       </div>
+//     </div>
+//   `;
+//   body.querySelector(".details-top").appendChild(container);
+//   container.scrollIntoView({ behavior: "smooth", block: "center" });
+
+//   const selBrand = container.querySelector(".qo-brand");
+//   const selModel = container.querySelector(".qo-model");
+//   const selYear = container.querySelector(".qo-year");
+//   const warn = container.querySelector(".qo-warning");
+
+//   // build variant data: prefer part.variants, else fallback to compatibilities
+//   const variants = Array.isArray(part.variants) && part.variants.length ? part.variants.slice() : [];
+//   if (!variants.length && Array.isArray(part.compatibilities)) {
+//     // convert compatibilities to pseudo-variants with placeholder price/year
+//     part.compatibilities.forEach(c => {
+//       variants.push({ brand: c.brand || "", model: c.model || "", year: (Array.isArray(c.years) ? c.years[0] : c.years) || "" , price: part.price || 0 });
+//     });
+//   }
+
+//   // map brands -> models -> years
+//   const modelsByBrand = {};
+//   const yearsByBm = {};
+//   const brandsSet = new Set();
+//   variants.forEach(v => {
+//     const b = v.brand || "";
+//     const m = v.model || "";
+//     const y = v.year || "";
+//     brandsSet.add(b);
+//     if (!modelsByBrand[b]) modelsByBrand[b] = new Set();
+//     if (m) modelsByBrand[b].add(m);
+//     const key = `${b}___${m}`;
+//     if (!yearsByBm[key]) yearsByBm[key] = new Set();
+//     if (y) yearsByBm[key].add(y);
+//   });
+
+//   const brands = Array.from(brandsSet).filter(Boolean).sort();
+//   brands.forEach(b => selBrand.insertAdjacentHTML("beforeend", `<option value="${escapeHtml(b)}">${escapeHtml(b)}</option>`));
+//   function populateModelsForBrand(b) {
+//     selModel.innerHTML = `<option value="">Select model</option>`;
+//     selYear.style.display = "none";
+//     (Array.from(modelsByBrand[b] || [])).sort().forEach(m => selModel.insertAdjacentHTML("beforeend", `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`));
+//   }
+//   function populateYearsFor(b,m) {
+//     selYear.innerHTML = `<option value="">Select year</option>`;
+//     const arr = Array.from(yearsByBm[`${b}___${m}`] || []).sort();
+//     arr.forEach(y => selYear.insertAdjacentHTML("beforeend", `<option value="${escapeHtml(y)}">${escapeHtml(y)}</option>`));
+//     selYear.style.display = arr.length ? "inline-block" : "none";
+//   }
+
+//   selBrand.addEventListener("change", () => { populateModelsForBrand(selBrand.value); warn.textContent = ""; });
+//   selModel.addEventListener("change", () => { populateYearsFor(selBrand.value, selModel.value); warn.textContent = ""; });
+
+//   container.querySelector(".qo-cancel").addEventListener("click", () => container.remove());
+
+//   container.querySelector(".qo-send").addEventListener("click", () => {
+//     const brand = selBrand.value || null;
+//     const model = selModel.value || null;
+//     const year = (selYear.style.display !== "none" && selYear.value) ? selYear.value : null;
+//     if (!brand || !model || !year) { warn.textContent = "Please select brand, model and year."; return; }
+
+//     // find the best matching variant if possible (match all three)
+//     const chosen = variants.find(v => String(v.brand) === String(brand) && String(v.model) === String(model) && String(v.year) === String(year))
+//                    || { price: part.price || 0, brand, model, year };
+
+//     const msg = [
+//       `Hello, I want to place a quick order on Manny Autos. \n \n`,
+//       `Part: ${part.name} \n`,
+//       `Variant: ${chosen.brand} ${chosen.model} — ${chosen.year} \n`,
+//       `Qty: 1 \n`,
+//       `Price: ${formatNumber(chosen.price)} FCFA \n`,
+//       ``,
+//       `Please confirm availability and delivery options.`
+//     ].join("\n");
+//     const encoded = encodeURIComponent(msg);
+//     const waUrl = WHATSAPP_PHONE ? `https://wa.me/${WHATSAPP_PHONE.replace(/\D/g,"")}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
+//     window.open(waUrl, "_blank");
+//     closeModal(detailsModal);
+//   });
+// });
+
+//   openModal(detailsModal);
+// }
+
+
+// Function to generate dynamic tabs and display part info
+function showPartInfoModal(info, imgSrc, imgAlt) {
+  const modal = document.createElement("div");
+  modal.classList.add("info-modal");
+
+  modal.innerHTML = `
+    <div class="modal-overlay"></div>
+
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>${info.name}</h2>
+        <span class="close-btn">&times;</span>
       </div>
 
-      <div class="details-tabs" style="margin-top:12px;display:flex;gap:8px;">
-        <button class="tab-btn active" data-tab="general">General Info</button>
-        <button class="tab-btn" data-tab="specs">Specs</button>
-      </div>
+      <div class="modal-body">
 
-      <div class="tab-contents" style="width:100%;margin-top:12px;">
-        <div class="tab-pane" data-tab="general" style="display:block">
-          <div class="general-grid">
-            <div class="image-panel" style="border-radius:8px;overflow:hidden;background:#f5f7fa;">
-              <!-- image slot populated below -->
-            </div>
-            <div class="general-info" style="display:flex;flex-direction:column;gap:8px;">
-              <div class="gi-desc" style="color:#0B2A44">${escapeHtml(part.description || "")}</div><br>
-              
-              <div><strong>Availability:</strong> <span class="${availabilityClass(part.availability)}">${ escapeHtml(part.availability || "")}</span></div><br>
-              
-              <div><strong>Price:</strong> ${formatNumber(part.price || 0)} FCFA</div><br>
-              
-              <div class="more-general"></div><br>
-            </div>
+        <div class="info-top">
+          <div class="info-image">
+            <img src="${imgSrc}" alt="${imgAlt}">
+          </div>
+
+          <div class="info-actions">
+            <button class="btn btn-secondary goto-store-btn">Go To Store</button>
+            <button class="btn btn-primary quick-order-btn">Place Quick Order</button>
           </div>
         </div>
 
-        <div class="tab-pane" data-tab="specs" style="display:none">
-          <div class="specs-list" style="display:block"></div>
-        </div>
+        <div class="tabs"></div>
+        <div class="tab-content"></div>
+
       </div>
     </div>
   `;
 
-  // populate image area (support string or array)
-  const imagePanel = body.querySelector(".image-panel");
-  const images = Array.isArray(part.image) ? part.image.slice() : (part.image ? [part.image] : []);
-  const imgIndexState = { i: 0 };
-  function renderImagePanel() {
-    imagePanel.innerHTML = "";
-    const imgWrap = document.createElement("div");
-    imgWrap.style.position = "relative";
-    imgWrap.style.display = "flex";
-    imgWrap.style.alignItems = "center";
-    imgWrap.style.justifyContent = "center";
-    imgWrap.style.height = "100%";
-    imgWrap.innerHTML = `
-      <img src="${escapeHtml(images[imgIndexState.i] || 'images/placeholder.png')}" style="width:100%;height:360px;object-fit:cover;display:block" onerror="this.onerror=null;this.src='images/placeholder.png'"/><br>
-    `;
-    // arrows if multiple images
-    if (images.length > 1) {
-      const left = document.createElement("button");
-      left.className = "img-arrow left";
-      left.style.position = "absolute";
-      left.style.left = "8px";
-      left.style.top = "50%";
-      left.style.transform = "translateY(-50%)";
-      left.textContent = "◀";
-      left.style.background = "rgba(0,0,0,0.12)";
-      left.style.color = "#fff";
-      left.style.border = "0";
-      left.style.width = "36px";
-      left.style.height = "36px";
-      left.style.borderRadius = "50%";
-      left.addEventListener("click", (ev) => {
-        ev.stopPropagation();
-        if (imgIndexState.i > 0) { imgIndexState.i--; renderImagePanel(); }
-      });
-      const right = document.createElement("button");
-      right.className = "img-arrow right";
-      right.style.position = "absolute";
-      right.style.right = "8px";
-      right.style.top = "50%";
-      right.style.transform = "translateY(-50%)";
-      right.textContent = "▶";
-      right.style.background = "rgba(0,0,0,0.12)";
-      right.style.color = "#fff";
-      right.style.border = "0";
-      right.style.width = "36px";
-      right.style.height = "36px";
-      right.style.borderRadius = "50%";
-      right.addEventListener("click", (ev) => {
-        ev.stopPropagation();
-        if (imgIndexState.i < images.length - 1) { imgIndexState.i++; renderImagePanel(); }
-      });
-      imgWrap.appendChild(left);
-      imgWrap.appendChild(right);
-    }
-    imagePanel.appendChild(imgWrap);
-  }
-  renderImagePanel();
-
-
-  // Helper: convert camelCase or snake_case to Title Case
-  function formatKey(key) {
-    return key
-      // convert camelCase to space-separated
-      .replace(/([a-z])([A-Z])/g, "$1 $2")
-      // replace underscores with space
-      .replace(/_/g, " ")
-      // capitalize first letter of each word
-      .replace(/\b\w/g, char => char.toUpperCase());
-  }
- 
-  // Render General Info
-  const moreGeneral = body.querySelector(".more-general");
-  const generalInfo = part.general; // the object you provided
-  moreGeneral.innerHTML = ""; // clear previous content
- 
-  if (generalInfo && typeof generalInfo === "object") {
-    Object.keys(generalInfo).forEach((key) => {
-      const value = generalInfo[key];
-      if (value !== undefined && value !== null && String(value).trim() !== "") {
-        const div = document.createElement("div");
+  document.body.appendChild(modal);
   
-        if (Array.isArray(value)) {
-          div.innerHTML = `<strong>${escapeHtml(formatKey(key))}:</strong> ${value.map(v => escapeHtml(String(v))).join(", ")}`;
-        } else if (typeof value === "object") {
-          const items = Object.keys(value)
-            .map(subKey => `${escapeHtml(formatKey(subKey))}: ${escapeHtml(String(value[subKey]))}`)
-            .join(" · ");
-          div.innerHTML = `<strong>${escapeHtml(formatKey(key))}:</strong> ${items}`;
-        } else {
-          div.innerHTML = `<strong>${escapeHtml(formatKey(key))}:</strong> ${escapeHtml(String(value))}`;
-        }
+  const quickOrderBtn = document.querySelector(".quick-order-btn")
+  const gotoStoreBtn = document.querySelector(".goto-store-btn")
   
-        const br = document.createElement("br")
-        moreGeneral.appendChild(div);
-        moreGeneral.appendChild(br)
-      }
+  quickOrderBtn.addEventListener("click", ()=>{
+   const panelExist = document.querySelector(".quick-order-panel")
+   if (panelExist){
+    return
+   }
+   
+   const quickOrderPanel = document.createElement("div")
+   quickOrderPanel.classList.add("quick-order-panel")
+    quickOrderPanel.innerHTML = `
+     <div class="quick-order">
+      <select class="brand-select">
+       <option value="">Select Brand</option>
+      </select>
+      <select class="model-select">
+       <option value="">Select Model</option>
+      </select>
+      <select class="year-select">
+       <option value="">Select Year</option>
+      </select>
+     </div>
+    `
+    // to populate brand and model dropdowns
+    const brandSelect = quickOrderPanel.querySelector(".brand-select")
+    const modelSelect = quickOrderPanel.querySelector(".model-select")
+    const yearSelect = quickOrderPanel.querySelector(".year-select")
+    loadBrandOptions(brandSelect)
+    loadModelOptions(modelSelect)
+    
+    // to filter model and year dropdowns after the predecessor is selected
+    brandSelect.addEventListener("change", ()=>{
+     const selectedBrand = brandSelect.value
+     filterModelOptions(modelSelect, selectedBrand)
+    })
+    modelSelect.addEventListener("change", ()=>{
+     const selectedBrand = brandSelect.value;
+     const selectedModel = modelSelect.value;
+     filterYearOptions(yearSelect, selectedBrand, selectedModel)
+    })
+    
+    //creates quick order button
+    yearSelect.addEventListener("change", ()=>{
+     const orderBtn = document.createElement("button")
+     orderBtn.classList.add("btn-primary")
+     orderBtn.addEventListener("click", ()=>{
+      placeQuickOrder(brandSelect.value, modelSelect.value, yearSelect.value)
+     })
+     orderBtn.textContent = "Order"
+     quickOrderPanel.appendChild(orderBtn)
+    })
+   
+   document.querySelector(".modal-content").appendChild(quickOrderPanel)
+   quickOrderPanel.scrollIntoView({behaviour: "smooth"})
+  })
+
+  const tabsContainer = modal.querySelector(".tabs");
+  const tabContent = modal.querySelector(".tab-content");
+
+  info.categories.forEach((category, index) => {
+    const tabBtn = document.createElement("button");
+    tabBtn.textContent = category.name;
+    tabBtn.classList.add("tab-btn");
+    if (index === 0) tabBtn.classList.add("active");
+
+    tabBtn.addEventListener("click", () => {
+      modal.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+      tabBtn.classList.add("active");
+      renderTabContent(category);
+    });
+
+    tabsContainer.appendChild(tabBtn);
+  });
+
+  renderTabContent(info.categories[0]);
+
+  function renderTabContent(category) {
+    tabContent.innerHTML = "";
+    category.fields.forEach(field => {
+      const fieldDiv = document.createElement("div");
+      fieldDiv.classList.add("field-item");
+      fieldDiv.innerHTML = `<strong>${field.name}:</strong> ${field.value || "N/A"}`;
+      tabContent.appendChild(fieldDiv);
     });
   }
-
-
-  // populate specs list (assume part.specs as object or array)
-  const specsList = body.querySelector(".specs-list");
-  if (Array.isArray(part.specs)) {
-    specsList.innerHTML = `<ul>${part.specs.map(s => `<li>${escapeHtml(String(s))}</li>`).join("")}</ul>`;
-  } else if (part.specs && typeof part.specs === "object") {
-    specsList.innerHTML = `<dl style="display:grid;grid-template-columns: 1fr 1fr;gap:8px">${Object.keys(part.specs).map(k => `<dt style="font-weight:700">${escapeHtml(formatKey(k))}</dt><dd>${escapeHtml(String(part.specs[k]))}</dd>`).join("")}</dl>`;
-  } else {
-    specsList.innerHTML = `<div style="color:#6b7a89">No specs available.</div>`;
+  
+  function placeQuickOrder(brand, model, year){
+   const msg = [
+    `Hello, I want to place a quick order on Manny Autos for the ${info.name} of ${year} ${brand} ${model}. \n \n`,
+    `Please confirm availability, price and delivery options.`
+   ].join("\n");
+   const encoded = encodeURIComponent(msg); 
+   const waUrl = WHATSAPP_PHONE ? `https://wa.me/${WHATSAPP_PHONE.replace(/\D/g,"")}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
+   window.open(waUrl, "_blank");
   }
 
-  // tab switching
-  body.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      body.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      const tab = btn.dataset.tab;
-      body.querySelectorAll(".tab-pane").forEach(p => p.style.display = (p.dataset.tab === tab ? "block" : "none"));
-    });
+  modal.querySelector(".close-btn").addEventListener("click", () => {
+    modal.remove();
   });
 
-  // Go To Store
-  body.querySelector(".goto-store")?.addEventListener("click", () => {
-    try { sessionStorage.setItem(STORE_OPEN_KEY, String(part.id)); } catch (e) {}
-    // navigate to store page (update relative path if needed)
-    window.location.href = "../Store/store.html";
+  modal.querySelector(".modal-overlay").addEventListener("click", () => {
+    modal.remove();
   });
-
-  // Quick Order flow (select brand->model->year inside modal)
-  // Quick Order flow (single panel, populates from variants or compatibilities)
-body.querySelector(".quick-order")?.addEventListener("click", () => {
-  // if panel already exists, focus/scroll to it instead of creating another
-  const existing = body.querySelector(".quick-order-panel");
-  if (existing) {
-    existing.scrollIntoView({ behavior: "smooth", block: "center" });
-    return;
-  }
-
-  const container = document.createElement("div");
-  container.className = "quick-order-panel";
-  container.style.marginTop = "12px";
-  container.innerHTML = `
-    <div style="display:grid;gap:10px">
-      <div><strong>Quick Order</strong></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <select class="qo-brand"><option value="">Select brand</option></select>
-        <select class="qo-model"><option value="">Select model</option></select>
-        <select class="qo-year" style="display:none"><option value="">Select year</option></select>
-      </div>
-      <div class="qo-warning" style="color:#b00000"></div>
-      <div style="display:flex;gap:8px;justify-content:flex-end">
-        <button class="btn-secondary qo-cancel">Cancel</button>
-        <button class="btn btn-primary qo-send">Send Order</button>
-      </div>
-    </div>
-  `;
-  body.querySelector(".details-top").appendChild(container);
-  container.scrollIntoView({ behavior: "smooth", block: "center" });
-
-  const selBrand = container.querySelector(".qo-brand");
-  const selModel = container.querySelector(".qo-model");
-  const selYear = container.querySelector(".qo-year");
-  const warn = container.querySelector(".qo-warning");
-
-  // build variant data: prefer part.variants, else fallback to compatibilities
-  const variants = Array.isArray(part.variants) && part.variants.length ? part.variants.slice() : [];
-  if (!variants.length && Array.isArray(part.compatibilities)) {
-    // convert compatibilities to pseudo-variants with placeholder price/year
-    part.compatibilities.forEach(c => {
-      variants.push({ brand: c.brand || "", model: c.model || "", year: (Array.isArray(c.years) ? c.years[0] : c.years) || "" , price: part.price || 0 });
-    });
-  }
-
-  // map brands -> models -> years
-  const modelsByBrand = {};
-  const yearsByBm = {};
-  const brandsSet = new Set();
-  variants.forEach(v => {
-    const b = v.brand || "";
-    const m = v.model || "";
-    const y = v.year || "";
-    brandsSet.add(b);
-    if (!modelsByBrand[b]) modelsByBrand[b] = new Set();
-    if (m) modelsByBrand[b].add(m);
-    const key = `${b}___${m}`;
-    if (!yearsByBm[key]) yearsByBm[key] = new Set();
-    if (y) yearsByBm[key].add(y);
-  });
-
-  const brands = Array.from(brandsSet).filter(Boolean).sort();
-  brands.forEach(b => selBrand.insertAdjacentHTML("beforeend", `<option value="${escapeHtml(b)}">${escapeHtml(b)}</option>`));
-  function populateModelsForBrand(b) {
-    selModel.innerHTML = `<option value="">Select model</option>`;
-    selYear.style.display = "none";
-    (Array.from(modelsByBrand[b] || [])).sort().forEach(m => selModel.insertAdjacentHTML("beforeend", `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`));
-  }
-  function populateYearsFor(b,m) {
-    selYear.innerHTML = `<option value="">Select year</option>`;
-    const arr = Array.from(yearsByBm[`${b}___${m}`] || []).sort();
-    arr.forEach(y => selYear.insertAdjacentHTML("beforeend", `<option value="${escapeHtml(y)}">${escapeHtml(y)}</option>`));
-    selYear.style.display = arr.length ? "inline-block" : "none";
-  }
-
-  selBrand.addEventListener("change", () => { populateModelsForBrand(selBrand.value); warn.textContent = ""; });
-  selModel.addEventListener("change", () => { populateYearsFor(selBrand.value, selModel.value); warn.textContent = ""; });
-
-  container.querySelector(".qo-cancel").addEventListener("click", () => container.remove());
-
-  container.querySelector(".qo-send").addEventListener("click", () => {
-    const brand = selBrand.value || null;
-    const model = selModel.value || null;
-    const year = (selYear.style.display !== "none" && selYear.value) ? selYear.value : null;
-    if (!brand || !model || !year) { warn.textContent = "Please select brand, model and year."; return; }
-
-    // find the best matching variant if possible (match all three)
-    const chosen = variants.find(v => String(v.brand) === String(brand) && String(v.model) === String(model) && String(v.year) === String(year))
-                   || { price: part.price || 0, brand, model, year };
-
-    const msg = [
-      `Hello, I want to place a quick order on Manny Autos. \n \n`,
-      `Part: ${part.name} \n`,
-      `Variant: ${chosen.brand} ${chosen.model} — ${chosen.year} \n`,
-      `Qty: 1 \n`,
-      `Price: ${formatNumber(chosen.price)} FCFA \n`,
-      ``,
-      `Please confirm availability and delivery options.`
-    ].join("\n");
-    const encoded = encodeURIComponent(msg);
-    const waUrl = WHATSAPP_PHONE ? `https://wa.me/${WHATSAPP_PHONE.replace(/\D/g,"")}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
-    window.open(waUrl, "_blank");
-    closeModal(detailsModal);
-  });
-});
-
-  openModal(detailsModal);
 }
 
 /* =========================
@@ -796,8 +957,6 @@ if (searchButton) {
     state.page = 1;
     const q = searchInput?.value ?? "";
     const results = await searchParts(q);
-    console.log("This runs")
-    console.log(`This is the result ${results}`)
     renderResults(results);
   });
 }
@@ -901,7 +1060,7 @@ resultsSection.addEventListener("click", (e) => {
 window.mannySearch = {
   renderResults,
   searchParts,
-  openDetailsModalForPart,
+  //openDetailsModalForPart,
   autoParts
 };
 
@@ -920,45 +1079,47 @@ let selectedModel = null;
 let selectedYear = null;
 const placeholderOption = "<option disabled selected>Select</option>";
 
-function loadBrandOptions() {
+function loadBrandOptions(selectElement) {
   if (!dropdownMenu) return;
-  dropdownMenu.innerHTML = placeholderOption;
+  selectElement.innerHTML = placeholderOption;
   (carData || []).forEach(b => {
     const opt = document.createElement("option");
     opt.value = b.brand;
     opt.textContent = b.brand;
-    dropdownMenu.appendChild(opt);
+    selectElement.appendChild(opt);
   });
 }
-function loadModelOptions() {
+
+function loadModelOptions(selectElement) {
   if (!dropdownMenu) return;
-  dropdownMenu.innerHTML = placeholderOption;
+  selectElement.innerHTML = placeholderOption;
   (carData || []).forEach(b => {
     (b.models || []).forEach(m => {
       const opt = document.createElement("option");
       opt.value = m.name;
       opt.textContent = m.name;
-      dropdownMenu.appendChild(opt);
+      selectElement.appendChild(opt);
     });
   });
 }
-function filterModelOptions(brand) {
+
+function filterModelOptions(selectElement, brand) {
   if (!dropdownMenu) return;
-  dropdownMenu.innerHTML = placeholderOption;
+  selectElement.innerHTML = placeholderOption;
   const brObj = (carData || []).find(x => x.brand === brand);
   if (!brObj) return;
   (brObj.models || []).forEach(m => {
     const opt = document.createElement("option");
     opt.value = m.name;
     opt.textContent = m.name;
-    dropdownMenu.appendChild(opt);
+    selectElement.appendChild(opt);
   });
   pill.classList.remove("pos-0");
   pill.classList.add("pos-1");
 }
-function filterYearOptions(brand, model) {
+function filterYearOptions(selectElement, brand, model) {
   if (!dropdownMenu) return;
-  dropdownMenu.innerHTML = placeholderOption;
+  selectElement.innerHTML = placeholderOption;
   const brObj = (carData || []).find(x => x.brand === brand);
   if (!brObj) return;
   const mo = (brObj.models || []).find(x => x.name === model);
@@ -967,7 +1128,7 @@ function filterYearOptions(brand, model) {
     const opt = document.createElement("option");
     opt.value = y;
     opt.textContent = y;
-    dropdownMenu.appendChild(opt);
+    selectElement.appendChild(opt);
   });
   pill.classList.remove("pos-1");
   pill.classList.add("pos-2");
@@ -978,10 +1139,10 @@ if (dropdownMenu) {
   dropdownMenu.addEventListener("change", () => {
     if (pill.classList.contains("pos-0")) {
       selectedBrand = dropdownMenu.value;
-      filterModelOptions(selectedBrand);
+      filterModelOptions(dropdownMenu, selectedBrand);
     } else if (pill.classList.contains("pos-1")) {
       selectedModel = dropdownMenu.value;
-      filterYearOptions(selectedBrand, selectedModel);
+      filterYearOptions(dropdownMenu, selectedBrand, selectedModel);
     } else {
       selectedYear = dropdownMenu.value;
     }
@@ -998,14 +1159,14 @@ if (pillOptions && pillOptions.length) {
       pill.classList.add(`pos-${i}`);
       filterLabel.innerText = `Select ${btn.innerText}`;
       // pre-load options for pos-0
-      if (pill.classList.contains("pos-0")) loadBrandOptions();
+      if (pill.classList.contains("pos-0")) loadBrandOptions(dropdownMenu);
       else if (pill.classList.contains("pos-1")) loadModelOptions();
       else if (pill.classList.contains("pos-2")) dropdownMenu.innerHTML = placeholderOption;
     });
   });
 }
 /* ensure initial brand list is present */
-loadBrandOptions();
+loadBrandOptions(dropdownMenu);
 
 
 /* -------------------------
